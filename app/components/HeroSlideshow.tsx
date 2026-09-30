@@ -297,6 +297,7 @@ export default function HeroSlideshow() {
           alignItems: "stretch",
           gap: "clamp(3px, 0.4vw, 6px)",
           padding: "clamp(3px, 0.4vw, 6px)",
+          paddingTop: "clamp(64px, 8vw, 84px)", // clear the floating navbar
           minHeight: 0,
         }}
       >
