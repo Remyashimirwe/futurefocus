@@ -1,26 +1,139 @@
 @import "tailwindcss";
 
+/* ─── Brand CSS Variables ─────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ff-900: #003d38;
+  --ff-800: #005850;
+  --ff-700: #00706b;
+  --ff-500: #00a79d;
+  --ff-400: #18baaf;
+  --ff-300: #4fcdc4;
+  --ff-200: #a0e8e4;
+  --ff-100: #e0f7f6;
+  --ff-50:  #f0fafa;
+
+  --gray-950: #0c0d0d;
+  --gray-900: #111312;
+  --gray-700: #374040;
+  --gray-500: #6b7575;
+  --gray-300: #c4cccc;
+  --gray-100: #f2f4f4;
+  --white:    #ffffff;
+
+  --font-heading: var(--font-plus-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-body:    var(--font-inter), "Inter", system-ui, sans-serif;
+  --section-py: 5rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ─── Base ────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+html { scroll-behavior: smooth; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--gray-900);
+  background: var(--white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+/* ─── Utilities ───────────────────────────────────────── */
+.ff-container {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 5vw, 3rem);
+}
+
+.ff-section { padding-block: var(--section-py); }
+
+/* ─── Buttons ─────────────────────────────────────────── */
+.btn-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  border-radius: 9999px;
+  background-color: var(--ff-500);
+  color: var(--white);
+  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+.btn-brand:hover {
+  background-color: var(--ff-400);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(0,167,157,0.3);
+}
+.btn-brand:focus-visible {
+  outline: 2px solid var(--ff-400);
+  outline-offset: 3px;
+}
+
+/* ─── Transition utility ──────────────────────────────── */
+.duration-400 { transition-duration: 400ms; }
+
+/* ─── Scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--ff-300); border-radius: 9999px; }
+
+/* ─── Selection ───────────────────────────────────────── */
+::selection { background: var(--ff-200); color: var(--ff-900); }
+
+/* ─── Focus ring ──────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--ff-400);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* ─── Keyframes ───────────────────────────────────────── */
+@keyframes ffSlideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ffFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes ffScaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ffScrollDown {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: translateY(250%); opacity: 0; }
+}
+
+/* ─── Reduced motion ──────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
