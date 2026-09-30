@@ -12,11 +12,8 @@ interface Course {
   description: string;
   cta: string;
   href: string;
-  // Gradient fills the role of a real photo until images are added
   gradient: string;
-  // Dominant accent for CTA / progress bar
   accent: string;
-  // background-position hint so the "subject" isn't cropped
   bgPosition: string;
 }
 
@@ -25,12 +22,10 @@ const COURSES: Course[] = [
     id: 0,
     category: "Digital Skills",
     title: "Build Skills for Tomorrow",
-    description:
-      "Develop practical digital skills through hands-on learning and real-world projects.",
+    description: "Develop practical digital skills through hands-on learning and real-world projects.",
     cta: "Explore Course",
     href: "#programs",
-    gradient:
-      "linear-gradient(135deg, #003d38 0%, #005850 30%, #00706b 60%, #00a79d 100%)",
+    gradient: "linear-gradient(135deg, #003d38 0%, #005850 35%, #00706b 65%, #00a79d 100%)",
     accent: "#18BAAF",
     bgPosition: "center center",
   },
@@ -38,12 +33,10 @@ const COURSES: Course[] = [
     id: 1,
     category: "Programming",
     title: "Turn Ideas Into Code",
-    description:
-      "Learn programming fundamentals and transform ideas into useful digital solutions.",
+    description: "Learn programming fundamentals and transform ideas into useful digital solutions.",
     cta: "Explore Course",
     href: "#programs",
-    gradient:
-      "linear-gradient(135deg, #001a2c 0%, #003050 30%, #005880 60%, #0084a8 100%)",
+    gradient: "linear-gradient(135deg, #001a2c 0%, #003050 35%, #005880 65%, #0084a8 100%)",
     accent: "#18BAAF",
     bgPosition: "center top",
   },
@@ -51,12 +44,10 @@ const COURSES: Course[] = [
     id: 2,
     category: "Leadership",
     title: "Lead With Confidence",
-    description:
-      "Develop communication, teamwork, and leadership skills for your future.",
+    description: "Develop communication, teamwork, and leadership skills for your future.",
     cta: "Explore Course",
     href: "#programs",
-    gradient:
-      "linear-gradient(135deg, #1a0a2e 0%, #2d1155 30%, #4a1a7a 60%, #6b2fa0 100%)",
+    gradient: "linear-gradient(135deg, #1a0a2e 0%, #2d1155 35%, #4a1a7a 65%, #6b2fa0 100%)",
     accent: "#18BAAF",
     bgPosition: "center center",
   },
@@ -64,12 +55,10 @@ const COURSES: Course[] = [
     id: 3,
     category: "Entrepreneurship",
     title: "Build.\u00a0Create.\u00a0Grow.",
-    description:
-      "Turn your ideas into opportunities through practical entrepreneurship training.",
+    description: "Turn your ideas into opportunities through practical entrepreneurship training.",
     cta: "Explore Course",
     href: "#programs",
-    gradient:
-      "linear-gradient(135deg, #1a1200 0%, #3d2c00 30%, #705200 60%, #a07800 100%)",
+    gradient: "linear-gradient(135deg, #1a1200 0%, #3d2c00 35%, #705200 65%, #a07800 100%)",
     accent: "#18BAAF",
     bgPosition: "center bottom",
   },
@@ -77,12 +66,10 @@ const COURSES: Course[] = [
     id: 4,
     category: "Creative Technology",
     title: "Create What Comes Next",
-    description:
-      "Explore creativity, technology, and innovation through practical projects.",
+    description: "Explore creativity, technology, and innovation through practical projects.",
     cta: "Explore Course",
     href: "#programs",
-    gradient:
-      "linear-gradient(135deg, #0d1a0d 0%, #1a3a1a 30%, #1a5a2e 60%, #1a7a42 100%)",
+    gradient: "linear-gradient(135deg, #0d1a0d 0%, #1a3a1a 35%, #1a5a2e 65%, #1a7a42 100%)",
     accent: "#18BAAF",
     bgPosition: "center center",
   },
@@ -90,149 +77,125 @@ const COURSES: Course[] = [
 
 const AUTOPLAY_MS = 3000;
 
-// ─── Single slide background (image or gradient placeholder) ───────
-function SlideBg({ course, isActive }: { course: Course; isActive: boolean }) {
-  const reduced = useReducedMotion();
-  return (
-    <motion.div
-      key={course.id}
-      initial={{ scale: reduced ? 1 : 1.04, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: reduced ? 1 : 0.97, opacity: 0 }}
-      transition={{ duration: reduced ? 0 : 0.75, ease: [0.32, 0, 0.67, 0] }}
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: course.gradient,
-        backgroundSize: "cover",
-        backgroundPosition: course.bgPosition,
-        backgroundRepeat: "no-repeat",
-        willChange: "transform, opacity",
-      }}
-    >
-      {/* Subtle grid / noise texture to make gradient look richer */}
-      <svg
-        aria-hidden="true"
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.06 }}
-        preserveAspectRatio="xMidYMid slice"
-        viewBox="0 0 400 300"
-      >
-        <defs>
-          <pattern id={`tex-${course.id}`} x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="1" fill="white" />
-          </pattern>
-        </defs>
-        <rect width="400" height="300" fill={`url(#tex-${course.id})`} />
-      </svg>
-
-      {/* Abstract shape for visual interest */}
-      <svg
-        aria-hidden="true"
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.12 }}
-        preserveAspectRatio="xMidYMid slice"
-        viewBox="0 0 1440 900"
-      >
-        <circle cx="1100" cy="200" r="500" fill="rgba(255,255,255,0.06)" />
-        <circle cx="1200" cy="100" r="300" fill="rgba(255,255,255,0.04)" />
-        <circle cx="200"  cy="700" r="350" fill="rgba(255,255,255,0.03)" />
-      </svg>
-    </motion.div>
-  );
-}
-
-// ─── Thumbnail for side slides ─────────────────────────────────────
-function SideSlide({
+// ─── Slide panel (used for all three visible panels) ───────────────
+function SlidePanel({
   course,
-  side,
+  role,
   onClick,
+  reduced,
 }: {
   course: Course;
-  side: "prev" | "next";
-  onClick: () => void;
+  role: "center" | "prev" | "next";
+  onClick?: () => void;
+  reduced: boolean;
 }) {
-  const reduced = useReducedMotion();
+  const isCenter = role === "center";
+
   return (
-    <motion.button
-      onClick={onClick}
-      aria-label={`${side === "prev" ? "Previous" : "Next"} course: ${course.title}`}
-      initial={{ opacity: 0, x: side === "prev" ? -20 : 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: side === "prev" ? -20 : 20 }}
-      transition={{ duration: reduced ? 0 : 0.4, ease: "easeOut" }}
+    <div
+      onClick={!isCenter ? onClick : undefined}
       style={{
-        position: "absolute",
-        top: 0,
-        bottom: 0,
-        [side === "prev" ? "left" : "right"]: 0,
-        width: "clamp(60px, 12vw, 160px)",
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        padding: 0,
+        position: "relative",
+        height: "100%",
         overflow: "hidden",
-        zIndex: 10,
+        cursor: isCenter ? "default" : "pointer",
+        flexShrink: 0,
+        // Center is the large stage; sides are narrow panels
+        width: isCenter ? "100%" : "clamp(55px, 11vw, 150px)",
+        borderRadius: isCenter ? "12px" : "8px",
+        transition: "width 0.4s cubic-bezier(0.4,0,0.2,1)",
       }}
-      whileHover={{ width: "clamp(70px, 14vw, 180px)" } as { width: string }}
+      aria-label={!isCenter ? `${role === "prev" ? "Previous" : "Next"}: ${course.title}` : undefined}
+      role={!isCenter ? "button" : undefined}
+      tabIndex={!isCenter ? 0 : undefined}
+      onKeyDown={!isCenter ? (e) => e.key === "Enter" && onClick?.() : undefined}
     >
-      {/* Gradient background */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: course.gradient,
-          backgroundSize: "cover",
-          backgroundPosition: course.bgPosition,
-          filter: "blur(1px) brightness(0.5)",
-        }}
-      />
-      {/* Vignette toward center */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            side === "prev"
-              ? "linear-gradient(to left, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 100%)"
-              : "linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 100%)",
-        }}
-      />
-      {/* Partial title peek */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: "calc(clamp(1.5rem, 4vw, 3rem) + 80px)", // align with main text area
-          [side === "prev" ? "left" : "right"]: "1rem",
-          [side === "prev" ? "right" : "left"]: "unset",
-          maxWidth: "90%",
-          textAlign: side === "prev" ? "left" : "right",
-        }}
-      >
-        <p
+      {/* Background gradient / image */}
+      <AnimatePresence mode="sync">
+        <motion.div
+          key={`bg-${course.id}-${role}`}
+          initial={{ opacity: 0, scale: reduced ? 1 : (isCenter ? 1.05 : 1) }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: reduced ? 1 : (isCenter ? 0.97 : 1) }}
+          transition={{ duration: reduced ? 0 : 0.65, ease: [0.32, 0, 0.67, 0] }}
           style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: "clamp(0.55rem, 1vw, 0.75rem)",
-            fontWeight: 600,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "rgba(255,255,255,0.5)",
-            marginBottom: "0.3rem",
+            position: "absolute",
+            inset: 0,
+            background: course.gradient,
+            backgroundSize: "cover",
+            backgroundPosition: course.bgPosition,
+            // Side panels: blurred + darkened
+            filter: isCenter ? "none" : "blur(1.5px) brightness(0.4)",
+            willChange: "transform, opacity",
           }}
         >
-          {course.category}
-        </p>
-        <p
+          {/* Dot texture */}
+          <svg aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: isCenter ? 0.06 : 0.03 }} preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 400">
+            <defs><pattern id={`dot-${course.id}-${role}`} x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="white" /></pattern></defs>
+            <rect width="400" height="400" fill={`url(#dot-${course.id}-${role})`} />
+          </svg>
+          {/* Abstract shapes */}
+          <svg aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: isCenter ? 0.1 : 0.05 }} preserveAspectRatio="xMidYMid slice" viewBox="0 0 1000 700">
+            <circle cx="750" cy="180" r="420" fill="rgba(255,255,255,0.06)" />
+            <circle cx="820" cy="80"  r="260" fill="rgba(255,255,255,0.04)" />
+            <circle cx="150" cy="600" r="300" fill="rgba(255,255,255,0.03)" />
+          </svg>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Center: dark gradient so bottom text is readable */}
+      {isCenter && (
+        <div
+          aria-hidden="true"
           style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: "clamp(0.7rem, 1.2vw, 0.95rem)",
-            fontWeight: 700,
-            color: "rgba(255,255,255,0.7)",
-            lineHeight: 1.2,
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.55) 72%, rgba(0,0,0,0.80) 100%)",
+            zIndex: 2,
+            pointerEvents: "none",
+          }}
+        />
+      )}
+
+      {/* Side: vignette toward center edge */}
+      {!isCenter && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              role === "prev"
+                ? "linear-gradient(to left, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 100%)"
+                : "linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 100%)",
+            zIndex: 2,
+            pointerEvents: "none",
+          }}
+        />
+      )}
+
+      {/* Side: peeking title text */}
+      {!isCenter && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "clamp(5rem, 9vw, 7rem)",
+            [role === "prev" ? "left" : "right"]: "0.75rem",
+            zIndex: 3,
+            maxWidth: "85%",
+            textAlign: role === "prev" ? "left" : "right",
           }}
         >
-          {course.title}
-        </p>
-      </div>
-    </motion.button>
+          <p style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(0.5rem, 0.9vw, 0.7rem)", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: "0.25rem" }}>
+            {course.category}
+          </p>
+          <p style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(0.62rem, 1.1vw, 0.85rem)", fontWeight: 700, color: "rgba(255,255,255,0.6)", lineHeight: 1.2 }}>
+            {course.title}
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -245,17 +208,12 @@ export default function HeroSlideshow() {
 
   const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Touch swipe
   const touchStartX = useRef(0);
 
-  const goTo = useCallback(
-    (idx: number) => {
-      setCurrent(((idx % COURSES.length) + COURSES.length) % COURSES.length);
-      setProgress(0);
-    },
-    []
-  );
+  const goTo = useCallback((idx: number) => {
+    setCurrent(((idx % COURSES.length) + COURSES.length) % COURSES.length);
+    setProgress(0);
+  }, []);
   const goNext = useCallback(() => goTo(current + 1), [current, goTo]);
   const goPrev = useCallback(() => goTo(current - 1), [current, goTo]);
 
@@ -287,36 +245,37 @@ export default function HeroSlideshow() {
     return () => window.removeEventListener("keydown", fn);
   }, [goNext, goPrev]);
 
-  const course    = COURSES[current];
+  const course     = COURSES[current];
   const prevCourse = COURSES[(current - 1 + COURSES.length) % COURSES.length];
   const nextCourse = COURSES[(current + 1) % COURSES.length];
 
-  // Text animation variants
-  const textContainer = {
+  // Text reveal variants
+  const textWrap = {
     hidden: {},
-    show: { transition: { staggerChildren: 0.07 } },
-    exit:  { transition: { staggerChildren: 0.04, staggerDirection: -1 } },
+    show: { transition: { staggerChildren: 0.08 } },
+    exit: { transition: { staggerChildren: 0.04, staggerDirection: -1 as const } },
   };
-  const textItem = {
-    hidden: { opacity: 0, y: reduced ? 0 : 18 },
-    show:   { opacity: 1, y: 0, transition: { duration: reduced ? 0 : 0.5, ease: [0.25, 0.1, 0.25, 1] } },
-    exit:   { opacity: 0, y: reduced ? 0 : -12, transition: { duration: reduced ? 0 : 0.3, ease: "easeIn" } },
+  const textLine = {
+    hidden: { opacity: 0, y: reduced ? 0 : 20 },
+    show:   { opacity: 1, y: 0, transition: { duration: reduced ? 0 : 0.5, ease: [0.25, 0.1, 0.25, 1] as const } },
+    exit:   { opacity: 0, y: reduced ? 0 : -10, transition: { duration: reduced ? 0 : 0.28, ease: "easeIn" as const } },
   };
 
   return (
     <section
       id="home"
       data-nav-theme="dark"
-      aria-label="Featured courses slideshow"
+      aria-label="Featured courses"
       style={{
         position: "relative",
         width: "100%",
         height: "100svh",
         minHeight: 520,
         maxHeight: 980,
-        background: "#000",
+        background: "#050e0d",
         overflow: "hidden",
-        userSelect: "none",
+        display: "flex",
+        flexDirection: "column",
       }}
       onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
       onTouchEnd={(e) => {
@@ -325,350 +284,220 @@ export default function HeroSlideshow() {
         if (dx >  40) goPrev();
       }}
     >
-      {/* ── Full-screen slide backgrounds ─────────────────────── */}
-      <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-        <AnimatePresence mode="sync">
-          <SlideBg key={course.id} course={course} isActive />
-        </AnimatePresence>
-      </div>
-
-      {/* ── Overlay — stronger at bottom where text sits ───────── */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 1,
-          background:
-            "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.82) 100%)",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* ── Side slides (prev / next peek) ─────────────────────── */}
-      <AnimatePresence>
-        <SideSlide key={`prev-${prevCourse.id}`} course={prevCourse} side="prev" onClick={goPrev} />
-        <SideSlide key={`next-${nextCourse.id}`} course={nextCourse} side="next" onClick={goNext} />
-      </AnimatePresence>
-
-      {/* ── Main content — bottom-left, above overlay ──────────── */}
+      {/* ── Three-panel stage ─────────────────────────────────── */}
+      {/*
+          Layout: [prev-peek] [center-stage] [next-peek]
+          The center takes all remaining flex space.
+          On mobile the side panels shrink to 0 (hidden).
+      */}
       <div
         style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 20,
-          padding: "0 clamp(80px, 14vw, 200px) clamp(1.5rem, 3vw, 2.5rem)",
+          flex: 1,
+          display: "flex",
+          alignItems: "stretch",
+          gap: "clamp(3px, 0.4vw, 6px)",
+          padding: "clamp(3px, 0.4vw, 6px)",
+          minHeight: 0,
         }}
       >
-        {/* Text block */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={current}
-            variants={textContainer}
-            initial="hidden"
-            animate="show"
-            exit="exit"
-            style={{ marginBottom: "clamp(1rem, 2vw, 1.5rem)" }}
-          >
-            {/* Category */}
-            <motion.p
-              variants={textItem}
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontSize: "clamp(0.65rem, 1vw, 0.8rem)",
-                fontWeight: 600,
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-                color: course.accent,
-                marginBottom: "0.5rem",
-              }}
-            >
-              {course.category}
-            </motion.p>
-
-            {/* Title */}
-            <motion.h1
-              variants={textItem}
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontSize: "clamp(1.6rem, 3.5vw, 3rem)",
-                fontWeight: 800,
-                letterSpacing: "-0.025em",
-                lineHeight: 1.1,
-                color: "#fff",
-                marginBottom: "0.65rem",
-                textShadow: "0 2px 20px rgba(0,0,0,0.4)",
-              }}
-            >
-              {course.title}
-            </motion.h1>
-
-            {/* Description */}
-            <motion.p
-              variants={textItem}
-              style={{
-                fontFamily: "var(--font-body)",
-                fontSize: "clamp(0.82rem, 1.2vw, 1rem)",
-                lineHeight: 1.6,
-                color: "rgba(255,255,255,0.72)",
-                maxWidth: "38rem",
-                marginBottom: "1.1rem",
-              }}
-            >
-              {course.description}
-            </motion.p>
-
-            {/* CTA */}
-            <motion.div variants={textItem}>
-              <a
-                href={course.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById("programs")?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="group inline-flex items-center gap-2"
-                style={{
-                  fontFamily: "var(--font-heading)",
-                  fontSize: "clamp(0.78rem, 1vw, 0.88rem)",
-                  fontWeight: 600,
-                  color: "#fff",
-                  background: course.accent,
-                  padding: "0.55rem 1.25rem",
-                  borderRadius: "9999px",
-                  textDecoration: "none",
-                  boxShadow: `0 4px 20px ${course.accent}55`,
-                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.4rem",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)";
-                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 8px 28px ${course.accent}77`;
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.transform = "";
-                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 4px 20px ${course.accent}55`;
-                }}
-                onMouseDown={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.transform = "scale(0.97)";
-                }}
-                onMouseUp={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)";
-                }}
-              >
-                {course.cta}
-                <svg
-                  width="13" height="13" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5"
-                  strokeLinecap="round" strokeLinejoin="round"
-                  className="group-hover:translate-x-0.5 transition-transform duration-200"
-                  aria-hidden="true"
-                >
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </a>
-            </motion.div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* ── Controls row ─────────────────────────────────────── */}
+        {/* Prev panel */}
         <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "clamp(0.75rem, 2vw, 1.5rem)",
-          }}
+          className="hidden sm:block"
+          style={{ flexShrink: 0, height: "100%" }}
         >
-          {/* Prev arrow */}
-          <button
-            onClick={goPrev}
-            aria-label="Previous course"
-            style={{
-              background: "none",
-              border: "1px solid rgba(255,255,255,0.25)",
-              color: "rgba(255,255,255,0.7)",
-              width: 36,
-              height: 36,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              flexShrink: 0,
-              transition: "border-color 0.2s, color 0.2s, background 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.7)";
-              (e.currentTarget as HTMLButtonElement).style.color = "#fff";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.25)";
-              (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.7)";
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M19 12H5M12 5l-7 7 7 7" />
-            </svg>
-          </button>
+          <SlidePanel course={prevCourse} role="prev" onClick={goPrev} reduced={reduced} />
+        </div>
 
-          {/* Progress dots + bar */}
+        {/* Center stage — takes all remaining space */}
+        <div style={{ flex: 1, minWidth: 0, height: "100%", position: "relative" }}>
+          <SlidePanel course={course} role="center" reduced={reduced} />
+
+          {/* Text overlay — bottom-left of center panel */}
           <div
             style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: "clamp(0.3rem, 0.8vw, 0.6rem)",
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10,
+              padding: "clamp(1.25rem, 3vw, 2.25rem) clamp(1.25rem, 3.5vw, 2.5rem)",
             }}
-            role="tablist"
-            aria-label="Course slides"
           >
-            {COURSES.map((c, i) => {
-              const isActive = i === current;
-              return (
-                <button
-                  key={c.id}
-                  role="tab"
-                  aria-selected={isActive}
-                  aria-label={`Course ${i + 1}: ${c.title}`}
-                  onClick={() => goTo(i)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    flexShrink: isActive ? 1 : 0,
-                    flex: isActive ? 1 : "none",
-                    minWidth: isActive ? 0 : undefined,
-                    transition: "flex 0.4s ease",
-                  }}
-                >
-                  {isActive ? (
-                    /* Active: full-width progress bar */
-                    <div
-                      style={{
-                        width: "100%",
-                        height: 2,
-                        background: "rgba(255,255,255,0.2)",
-                        borderRadius: "9999px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div
-                        style={{
-                          height: "100%",
-                          width: `${progress}%`,
-                          background: course.accent,
-                          borderRadius: "9999px",
-                          transition: paused ? "none" : "width 0.08s linear",
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    /* Inactive: small dot */
-                    <div
-                      style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: "50%",
-                        background: "rgba(255,255,255,0.35)",
-                        transition: "background 0.2s",
-                        margin: "0 auto",
-                      }}
-                      onMouseEnter={(e) => ((e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.7)")}
-                      onMouseLeave={(e) => ((e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.35)")}
-                    />
-                  )}
-                </button>
-              );
-            })}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={current}
+                variants={textWrap}
+                initial="hidden"
+                animate="show"
+                exit="exit"
+              >
+                {/* Category */}
+                <motion.p variants={textLine} style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(0.65rem, 1vw, 0.78rem)", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: course.accent, marginBottom: "0.5rem" }}>
+                  {course.category}
+                </motion.p>
+
+                {/* Title */}
+                <motion.h1 variants={textLine} style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(1.5rem, 3.2vw, 2.75rem)", fontWeight: 800, letterSpacing: "-0.025em", lineHeight: 1.1, color: "#fff", marginBottom: "0.6rem", textShadow: "0 2px 16px rgba(0,0,0,0.35)" }}>
+                  {course.title}
+                </motion.h1>
+
+                {/* Description */}
+                <motion.p variants={textLine} style={{ fontFamily: "var(--font-body)", fontSize: "clamp(0.8rem, 1.15vw, 0.95rem)", lineHeight: 1.6, color: "rgba(255,255,255,0.7)", maxWidth: "36rem", marginBottom: "1rem" }}>
+                  {course.description}
+                </motion.p>
+
+                {/* CTA */}
+                <motion.div variants={textLine}>
+                  <a
+                    href={course.href}
+                    onClick={(e) => { e.preventDefault(); document.getElementById("programs")?.scrollIntoView({ behavior: "smooth" }); }}
+                    style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(0.75rem, 0.95vw, 0.85rem)", fontWeight: 600, color: "#fff", background: course.accent, padding: "0.5rem 1.2rem", borderRadius: "9999px", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.4rem", boxShadow: `0 4px 18px ${course.accent}55`, transition: "transform 0.2s, box-shadow 0.2s" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 8px 26px ${course.accent}77`; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = ""; (e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 4px 18px ${course.accent}55`; }}
+                    onMouseDown={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "scale(0.97)"; }}
+                    onMouseUp={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)"; }}
+                  >
+                    {course.cta}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                  </a>
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
           </div>
+        </div>
 
-          {/* Slide counter */}
-          <span
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: "clamp(0.7rem, 1vw, 0.8rem)",
-              fontWeight: 600,
-              color: "rgba(255,255,255,0.55)",
-              tabularNums: "tabular-nums",
-              letterSpacing: "0.06em",
-              flexShrink: 0,
-            } as React.CSSProperties}
-            aria-live="polite"
-          >
-            {String(current + 1).padStart(2, "0")} / {String(COURSES.length).padStart(2, "0")}
-          </span>
-
-          {/* Pause / Play */}
-          <button
-            onClick={() => setPaused((p) => !p)}
-            aria-label={paused ? "Resume autoplay" : "Pause autoplay"}
-            aria-pressed={paused}
-            style={{
-              background: "none",
-              border: `1px solid ${paused ? course.accent : "rgba(255,255,255,0.25)"}`,
-              color: paused ? course.accent : "rgba(255,255,255,0.7)",
-              width: 36,
-              height: 36,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              flexShrink: 0,
-              transition: "border-color 0.25s, color 0.25s",
-            }}
-          >
-            {paused ? (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <polygon points="5,3 19,12 5,21" />
-              </svg>
-            ) : (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <rect x="6" y="4" width="4" height="16" rx="1" />
-                <rect x="14" y="4" width="4" height="16" rx="1" />
-              </svg>
-            )}
-          </button>
-
-          {/* Next arrow */}
-          <button
-            onClick={goNext}
-            aria-label="Next course"
-            style={{
-              background: "none",
-              border: "1px solid rgba(255,255,255,0.25)",
-              color: "rgba(255,255,255,0.7)",
-              width: 36,
-              height: 36,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              flexShrink: 0,
-              transition: "border-color 0.2s, color 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.7)";
-              (e.currentTarget as HTMLButtonElement).style.color = "#fff";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.25)";
-              (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.7)";
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </button>
+        {/* Next panel */}
+        <div
+          className="hidden sm:block"
+          style={{ flexShrink: 0, height: "100%" }}
+        >
+          <SlidePanel course={nextCourse} role="next" onClick={goNext} reduced={reduced} />
         </div>
       </div>
+
+      {/* ── Controls bar ──────────────────────────────────────── */}
+      <div
+        style={{
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          gap: "clamp(0.6rem, 1.5vw, 1.2rem)",
+          padding: "clamp(0.6rem, 1.2vw, 1rem) clamp(0.75rem, 2vw, 1.5rem)",
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+        }}
+      >
+        {/* Prev */}
+        <CtrlBtn onClick={goPrev} label="Previous course">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
+        </CtrlBtn>
+
+        {/* Dots + progress bar */}
+        <div
+          role="tablist"
+          aria-label="Course slides"
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: "clamp(0.3rem, 0.7vw, 0.55rem)" }}
+        >
+          {COURSES.map((c, i) => {
+            const isActive = i === current;
+            return (
+              <button
+                key={c.id}
+                role="tab"
+                aria-selected={isActive}
+                aria-label={`Course ${i + 1}: ${c.title}`}
+                onClick={() => goTo(i)}
+                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", flex: isActive ? 1 : "none", minWidth: isActive ? 0 : undefined, transition: "flex 0.35s ease" }}
+              >
+                {isActive ? (
+                  <div style={{ width: "100%", height: 2, background: "rgba(255,255,255,0.18)", borderRadius: "9999px", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${progress}%`, background: course.accent, borderRadius: "9999px", transition: paused ? "none" : "width 0.08s linear" }} />
+                  </div>
+                ) : (
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.3)", margin: "0 auto", transition: "background 0.2s" }}
+                    onMouseEnter={(e) => ((e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.65)")}
+                    onMouseLeave={(e) => ((e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.3)")}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Counter */}
+        <span style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(0.68rem, 0.9vw, 0.78rem)", fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: "0.08em", flexShrink: 0 } as React.CSSProperties} aria-live="polite">
+          {String(current + 1).padStart(2, "0")} / {String(COURSES.length).padStart(2, "0")}
+        </span>
+
+        {/* Pause/Play */}
+        <CtrlBtn
+          onClick={() => setPaused((p) => !p)}
+          label={paused ? "Resume autoplay" : "Pause autoplay"}
+          active={paused}
+          accent={course.accent}
+        >
+          {paused ? (
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5,3 19,12 5,21" /></svg>
+          ) : (
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" />
+            </svg>
+          )}
+        </CtrlBtn>
+
+        {/* Next */}
+        <CtrlBtn onClick={goNext} label="Next course">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+        </CtrlBtn>
+      </div>
     </section>
+  );
+}
+
+// ─── Small control button ──────────────────────────────────────────
+function CtrlBtn({
+  onClick,
+  label,
+  children,
+  active = false,
+  accent,
+}: {
+  onClick: () => void;
+  label: string;
+  children: React.ReactNode;
+  active?: boolean;
+  accent?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      aria-pressed={active}
+      style={{
+        background: "none",
+        border: `1px solid ${active && accent ? accent : "rgba(255,255,255,0.22)"}`,
+        color: active && accent ? accent : "rgba(255,255,255,0.65)",
+        width: 34,
+        height: 34,
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        flexShrink: 0,
+        transition: "border-color 0.2s, color 0.2s, background 0.2s",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.65)";
+        (e.currentTarget as HTMLButtonElement).style.color = "#fff";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.borderColor = active && accent ? accent : "rgba(255,255,255,0.22)";
+        (e.currentTarget as HTMLButtonElement).style.color = active && accent ? accent : "rgba(255,255,255,0.65)";
+      }}
+    >
+      {children}
+    </button>
   );
 }
