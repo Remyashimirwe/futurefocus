@@ -1,494 +1,674 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useReducedMotion } from "../hooks";
 
-interface Slide {
+// ─── Course data ───────────────────────────────────────────────────
+interface Course {
   id: number;
   category: string;
   title: string;
   description: string;
   cta: string;
-  bg: string;
+  href: string;
+  // Gradient fills the role of a real photo until images are added
+  gradient: string;
+  // Dominant accent for CTA / progress bar
   accent: string;
-  pattern: string;
+  // background-position hint so the "subject" isn't cropped
+  bgPosition: string;
 }
 
-const SLIDES: Slide[] = [
+const COURSES: Course[] = [
   {
     id: 0,
-    category: "FUTURE FOCUS",
-    title: "Discover Your Future",
-    description: "Explore your potential, build confidence, and take the first step toward a brighter future.",
-    cta: "Explore Programs",
-    bg: "from-[#003d38] via-[#005850] to-[#00706b]",
+    category: "Digital Skills",
+    title: "Build Skills for Tomorrow",
+    description:
+      "Develop practical digital skills through hands-on learning and real-world projects.",
+    cta: "Explore Course",
+    href: "#programs",
+    gradient:
+      "linear-gradient(135deg, #003d38 0%, #005850 30%, #00706b 60%, #00a79d 100%)",
     accent: "#18BAAF",
-    pattern: "circles",
+    bgPosition: "center center",
   },
   {
     id: 1,
-    category: "LEARNING",
-    title: "Learn.\u00a0Build.\u00a0Create.",
-    description: "Develop practical skills through engaging, hands-on learning designed for the real world.",
-    cta: "View Programs",
-    bg: "from-[#00706b] via-[#005850] to-[#003d38]",
-    accent: "#00A79D",
-    pattern: "grid",
+    category: "Programming",
+    title: "Turn Ideas Into Code",
+    description:
+      "Learn programming fundamentals and transform ideas into useful digital solutions.",
+    cta: "Explore Course",
+    href: "#programs",
+    gradient:
+      "linear-gradient(135deg, #001a2c 0%, #003050 30%, #005880 60%, #0084a8 100%)",
+    accent: "#18BAAF",
+    bgPosition: "center top",
   },
   {
     id: 2,
-    category: "TECHNOLOGY & SKILLS",
-    title: "Skills for Tomorrow",
-    description: "Build digital and professional skills that prepare you for opportunities in a rapidly changing world.",
-    cta: "Start Learning",
-    bg: "from-[#004a45] via-[#006860] to-[#009990]",
-    accent: "#4FCDC4",
-    pattern: "dots",
+    category: "Leadership",
+    title: "Lead With Confidence",
+    description:
+      "Develop communication, teamwork, and leadership skills for your future.",
+    cta: "Explore Course",
+    href: "#programs",
+    gradient:
+      "linear-gradient(135deg, #1a0a2e 0%, #2d1155 30%, #4a1a7a 60%, #6b2fa0 100%)",
+    accent: "#18BAAF",
+    bgPosition: "center center",
   },
   {
     id: 3,
-    category: "INNOVATION",
-    title: "Turn Ideas Into Impact",
-    description: "Transform your ideas into meaningful projects through creativity, teamwork, and innovation.",
-    cta: "Explore Innovation",
-    bg: "from-[#003530] via-[#00504b] to-[#007a72]",
+    category: "Entrepreneurship",
+    title: "Build.\u00a0Create.\u00a0Grow.",
+    description:
+      "Turn your ideas into opportunities through practical entrepreneurship training.",
+    cta: "Explore Course",
+    href: "#programs",
+    gradient:
+      "linear-gradient(135deg, #1a1200 0%, #3d2c00 30%, #705200 60%, #a07800 100%)",
     accent: "#18BAAF",
-    pattern: "lines",
+    bgPosition: "center bottom",
   },
   {
     id: 4,
-    category: "PERSONAL DEVELOPMENT",
-    title: "Grow With Confidence",
-    description: "Strengthen communication, leadership, problem-solving, and the confidence to pursue your goals.",
-    cta: "Discover More",
-    bg: "from-[#005850] via-[#007a72] to-[#00a79d]",
-    accent: "#00A79D",
-    pattern: "circles",
-  },
-  {
-    id: 5,
-    category: "FUTURE FOCUS",
-    title: "Your Future Starts Here",
-    description: "Join a community focused on learning, growth, opportunity, and building the future together.",
-    cta: "Apply Now",
-    bg: "from-[#002e2b] via-[#004a45] to-[#006860]",
-    accent: "#4FCDC4",
-    pattern: "grid",
+    category: "Creative Technology",
+    title: "Create What Comes Next",
+    description:
+      "Explore creativity, technology, and innovation through practical projects.",
+    cta: "Explore Course",
+    href: "#programs",
+    gradient:
+      "linear-gradient(135deg, #0d1a0d 0%, #1a3a1a 30%, #1a5a2e 60%, #1a7a42 100%)",
+    accent: "#18BAAF",
+    bgPosition: "center center",
   },
 ];
 
-const AUTOPLAY_INTERVAL = 6000;
+const AUTOPLAY_MS = 3000;
 
-function SlidePattern({ type, accent }: { type: string; accent: string }) {
-  const op = 0.07;
-  if (type === "circles") return (
-    <svg className="absolute inset-0 w-full h-full" aria-hidden="true" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1440 800">
-      <circle cx="900" cy="200" r="320" stroke={accent} strokeWidth="1.5" fill="none" opacity={op} />
-      <circle cx="900" cy="200" r="220" stroke={accent} strokeWidth="1"   fill="none" opacity={op * 0.8} />
-      <circle cx="900" cy="200" r="120" stroke={accent} strokeWidth="0.8" fill="none" opacity={op * 0.6} />
-      <circle cx="200" cy="650" r="180" stroke={accent} strokeWidth="1"   fill="none" opacity={op * 0.5} />
-      <circle cx="1300" cy="700" r="100" stroke={accent} strokeWidth="0.8" fill="none" opacity={op * 0.4} />
-    </svg>
+// ─── Single slide background (image or gradient placeholder) ───────
+function SlideBg({ course, isActive }: { course: Course; isActive: boolean }) {
+  const reduced = useReducedMotion();
+  return (
+    <motion.div
+      key={course.id}
+      initial={{ scale: reduced ? 1 : 1.04, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: reduced ? 1 : 0.97, opacity: 0 }}
+      transition={{ duration: reduced ? 0 : 0.75, ease: [0.32, 0, 0.67, 0] }}
+      style={{
+        position: "absolute",
+        inset: 0,
+        background: course.gradient,
+        backgroundSize: "cover",
+        backgroundPosition: course.bgPosition,
+        backgroundRepeat: "no-repeat",
+        willChange: "transform, opacity",
+      }}
+    >
+      {/* Subtle grid / noise texture to make gradient look richer */}
+      <svg
+        aria-hidden="true"
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.06 }}
+        preserveAspectRatio="xMidYMid slice"
+        viewBox="0 0 400 300"
+      >
+        <defs>
+          <pattern id={`tex-${course.id}`} x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="1" fill="white" />
+          </pattern>
+        </defs>
+        <rect width="400" height="300" fill={`url(#tex-${course.id})`} />
+      </svg>
+
+      {/* Abstract shape for visual interest */}
+      <svg
+        aria-hidden="true"
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.12 }}
+        preserveAspectRatio="xMidYMid slice"
+        viewBox="0 0 1440 900"
+      >
+        <circle cx="1100" cy="200" r="500" fill="rgba(255,255,255,0.06)" />
+        <circle cx="1200" cy="100" r="300" fill="rgba(255,255,255,0.04)" />
+        <circle cx="200"  cy="700" r="350" fill="rgba(255,255,255,0.03)" />
+      </svg>
+    </motion.div>
   );
-  if (type === "grid") return (
-    <svg className="absolute inset-0 w-full h-full" aria-hidden="true" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1440 800">
-      <defs><pattern id="hgrid" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-        <path d="M60 0L0 0 0 60" fill="none" stroke={accent} strokeWidth="0.6" opacity={op} />
-      </pattern></defs>
-      <rect width="1440" height="800" fill="url(#hgrid)" />
-      <rect x="800" y="100" width="500" height="300" rx="4" stroke={accent} strokeWidth="1" fill="none" opacity={op * 0.6} />
-    </svg>
-  );
-  if (type === "dots") return (
-    <svg className="absolute inset-0 w-full h-full" aria-hidden="true" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1440 800">
-      <defs><pattern id="hdots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-        <circle cx="2" cy="2" r="1.5" fill={accent} opacity={op} />
-      </pattern></defs>
-      <rect width="1440" height="800" fill="url(#hdots)" />
-      <circle cx="1050" cy="350" r="200" stroke={accent} strokeWidth="1" fill="none" opacity={op * 0.7} />
-    </svg>
-  );
-  if (type === "lines") return (
-    <svg className="absolute inset-0 w-full h-full" aria-hidden="true" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1440 800">
-      {[0,1,2,3,4,5,6].map((i) => (
-        <line key={i} x1={600+i*120} y1="0" x2={300+i*120} y2="800" stroke={accent} strokeWidth="0.8" opacity={op*(1-i*0.1)} />
-      ))}
-      <polyline points="700,0 900,400 1100,0" fill="none" stroke={accent} strokeWidth="1" opacity={op*0.5} />
-    </svg>
-  );
-  return null;
 }
 
+// ─── Thumbnail for side slides ─────────────────────────────────────
+function SideSlide({
+  course,
+  side,
+  onClick,
+}: {
+  course: Course;
+  side: "prev" | "next";
+  onClick: () => void;
+}) {
+  const reduced = useReducedMotion();
+  return (
+    <motion.button
+      onClick={onClick}
+      aria-label={`${side === "prev" ? "Previous" : "Next"} course: ${course.title}`}
+      initial={{ opacity: 0, x: side === "prev" ? -20 : 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: side === "prev" ? -20 : 20 }}
+      transition={{ duration: reduced ? 0 : 0.4, ease: "easeOut" }}
+      style={{
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        [side === "prev" ? "left" : "right"]: 0,
+        width: "clamp(60px, 12vw, 160px)",
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        padding: 0,
+        overflow: "hidden",
+        zIndex: 10,
+      }}
+      whileHover={{ width: "clamp(70px, 14vw, 180px)" } as { width: string }}
+    >
+      {/* Gradient background */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: course.gradient,
+          backgroundSize: "cover",
+          backgroundPosition: course.bgPosition,
+          filter: "blur(1px) brightness(0.5)",
+        }}
+      />
+      {/* Vignette toward center */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            side === "prev"
+              ? "linear-gradient(to left, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 100%)"
+              : "linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 100%)",
+        }}
+      />
+      {/* Partial title peek */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "calc(clamp(1.5rem, 4vw, 3rem) + 80px)", // align with main text area
+          [side === "prev" ? "left" : "right"]: "1rem",
+          [side === "prev" ? "right" : "left"]: "unset",
+          maxWidth: "90%",
+          textAlign: side === "prev" ? "left" : "right",
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "var(--font-heading)",
+            fontSize: "clamp(0.55rem, 1vw, 0.75rem)",
+            fontWeight: 600,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.5)",
+            marginBottom: "0.3rem",
+          }}
+        >
+          {course.category}
+        </p>
+        <p
+          style={{
+            fontFamily: "var(--font-heading)",
+            fontSize: "clamp(0.7rem, 1.2vw, 0.95rem)",
+            fontWeight: 700,
+            color: "rgba(255,255,255,0.7)",
+            lineHeight: 1.2,
+          }}
+        >
+          {course.title}
+        </p>
+      </div>
+    </motion.button>
+  );
+}
+
+// ─── Main component ────────────────────────────────────────────────
 export default function HeroSlideshow() {
   const [current, setCurrent] = useState(0);
-  const [prev, setPrev]       = useState<number | null>(null);
-  const [direction, setDirection] = useState<"next" | "prev">("next");
-  const [animating, setAnimating] = useState(false);
-  const [progress, setProgress]   = useState(0);
-  const [paused, setPaused]       = useState(false);
-  const [entered, setEntered]     = useState(false); // initial cinematic entrance
+  const [paused, setPaused]   = useState(false);
+  const [progress, setProgress] = useState(0);
   const reduced = useReducedMotion();
 
+  const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const autoplayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Cinematic entrance — trigger after a short delay (loader finishes)
-  useEffect(() => {
-    const t = setTimeout(() => setEntered(true), reduced ? 0 : 200);
-    return () => clearTimeout(t);
-  }, [reduced]);
+  // Touch swipe
+  const touchStartX = useRef(0);
 
   const goTo = useCallback(
-    (index: number, dir: "next" | "prev" = "next") => {
-      if (animating) return;
-      setDirection(dir);
-      setPrev(current);
-      setAnimating(true);
-      setCurrent(index);
+    (idx: number) => {
+      setCurrent(((idx % COURSES.length) + COURSES.length) % COURSES.length);
       setProgress(0);
-      setTimeout(() => { setPrev(null); setAnimating(false); }, 700);
     },
-    [animating, current]
+    []
   );
-
-  const goNext = useCallback(() => goTo((current + 1) % SLIDES.length, "next"), [current, goTo]);
-  const goPrev = useCallback(() => goTo((current - 1 + SLIDES.length) % SLIDES.length, "prev"), [current, goTo]);
-
-  // Progress tick
-  useEffect(() => {
-    if (paused) return;
-    progressRef.current = setInterval(() => {
-      setProgress((p) => Math.min(100, p + 100 / (AUTOPLAY_INTERVAL / 100)));
-    }, 100);
-    return () => { if (progressRef.current) clearInterval(progressRef.current); };
-  }, [current, paused]);
+  const goNext = useCallback(() => goTo(current + 1), [current, goTo]);
+  const goPrev = useCallback(() => goTo(current - 1), [current, goTo]);
 
   // Autoplay
   useEffect(() => {
     if (paused) return;
-    autoplayRef.current = setTimeout(() => goNext(), AUTOPLAY_INTERVAL);
-    return () => { if (autoplayRef.current) clearTimeout(autoplayRef.current); };
+    timerRef.current = setTimeout(goNext, AUTOPLAY_MS);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [current, paused, goNext]);
 
-  // Keyboard nav
+  // Progress tick
+  useEffect(() => {
+    if (paused) { if (progressRef.current) clearInterval(progressRef.current); return; }
+    setProgress(0);
+    progressRef.current = setInterval(() => {
+      setProgress((p) => Math.min(100, p + 100 / (AUTOPLAY_MS / 80)));
+    }, 80);
+    return () => { if (progressRef.current) clearInterval(progressRef.current); };
+  }, [current, paused]);
+
+  // Keyboard
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") goNext();
       if (e.key === "ArrowLeft")  goPrev();
+      if (e.key === " ")          setPaused((p) => !p);
     };
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
   }, [goNext, goPrev]);
 
-  const slide     = SLIDES[current];
-  const prevSlide = SLIDES[(current - 1 + SLIDES.length) % SLIDES.length];
-  const nextSlide = SLIDES[(current + 1) % SLIDES.length];
+  const course    = COURSES[current];
+  const prevCourse = COURSES[(current - 1 + COURSES.length) % COURSES.length];
+  const nextCourse = COURSES[(current + 1) % COURSES.length];
 
-  // Entrance animation delays (staggered)
-  const DELAYS = reduced ? ["0s","0s","0s","0s"] : ["0s","0.12s","0.24s","0.38s"];
-  const DURATION = reduced ? "0s" : "0.7s";
+  // Text animation variants
+  const textContainer = {
+    hidden: {},
+    show: { transition: { staggerChildren: 0.07 } },
+    exit:  { transition: { staggerChildren: 0.04, staggerDirection: -1 } },
+  };
+  const textItem = {
+    hidden: { opacity: 0, y: reduced ? 0 : 18 },
+    show:   { opacity: 1, y: 0, transition: { duration: reduced ? 0 : 0.5, ease: [0.25, 0.1, 0.25, 1] } },
+    exit:   { opacity: 0, y: reduced ? 0 : -12, transition: { duration: reduced ? 0 : 0.3, ease: "easeIn" } },
+  };
 
   return (
     <section
       id="home"
-      className="relative overflow-hidden"
-      style={{ height: "100svh", minHeight: 600, maxHeight: 900 }}
       data-nav-theme="dark"
-      aria-label="Hero slideshow"
+      aria-label="Featured courses slideshow"
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100svh",
+        minHeight: 520,
+        maxHeight: 980,
+        background: "#000",
+        overflow: "hidden",
+        userSelect: "none",
+      }}
+      onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+      onTouchEnd={(e) => {
+        const dx = e.changedTouches[0].clientX - touchStartX.current;
+        if (dx < -40) goNext();
+        if (dx >  40) goPrev();
+      }}
     >
-      {/* ── Slide backgrounds ─────────────────────────────────── */}
-      {SLIDES.map((s, i) => {
-        const isCurrent = i === current;
-        const isPrev    = i === prev;
-        return (
-          <div
-            key={s.id}
-            className="absolute inset-0"
-            style={{
-              zIndex: isCurrent ? 20 : isPrev ? 10 : 0,
-              opacity: isCurrent ? 1 : 0,
-              transition: reduced ? "none" : "opacity 0.7s ease",
-              pointerEvents: isCurrent ? "auto" : "none",
-            }}
-            aria-hidden={!isCurrent}
-          >
-            {/* Gradient bg with slow Ken Burns zoom */}
-            <div
-              className={`absolute inset-0 bg-gradient-to-br ${s.bg}`}
-              style={{
-                transform: isCurrent && !reduced ? "scale(1.06)" : "scale(1)",
-                transition: isCurrent && !reduced ? `transform ${AUTOPLAY_INTERVAL}ms linear` : "none",
-              }}
-            />
-            <SlidePattern type={s.pattern} accent={s.accent} />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-transparent" />
-          </div>
-        );
-      })}
-
-      {/* ── Content ───────────────────────────────────────────── */}
-      <div className="relative z-30 h-full flex flex-col justify-center ff-container">
-        <div className="max-w-2xl">
-
-          {/* Category */}
-          <div
-            key={`cat-${current}`}
-            className="inline-flex items-center gap-2.5 mb-5"
-            style={{
-              opacity: entered ? 1 : 0,
-              transform: entered ? "translateY(0)" : "translateY(18px)",
-              transition: `opacity ${DURATION} ${DELAYS[0]} ease, transform ${DURATION} ${DELAYS[0]} ease`,
-            }}
-          >
-            <span className="h-px w-8" style={{ background: slide.accent }} />
-            <span
-              className="text-xs font-semibold tracking-[0.2em] uppercase"
-              style={{ color: slide.accent, fontFamily: "var(--font-heading)" }}
-            >
-              {slide.category}
-            </span>
-          </div>
-
-          {/* Title */}
-          <h1
-            key={`title-${current}`}
-            className="text-white leading-tight mb-5"
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 800,
-              fontSize: "clamp(2.5rem, 6vw, 4.75rem)",
-              letterSpacing: "-0.03em",
-              opacity: entered ? 1 : 0,
-              transform: entered ? "translateY(0)" : "translateY(22px)",
-              transition: `opacity ${DURATION} ${DELAYS[1]} ease, transform ${DURATION} ${DELAYS[1]} ease`,
-            }}
-          >
-            {slide.title}
-          </h1>
-
-          {/* Description */}
-          <p
-            key={`desc-${current}`}
-            className="text-white/75 max-w-md mb-8"
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "clamp(0.95rem, 1.4vw, 1.1rem)",
-              lineHeight: 1.7,
-              opacity: entered ? 1 : 0,
-              transform: entered ? "translateY(0)" : "translateY(18px)",
-              transition: `opacity ${DURATION} ${DELAYS[2]} ease, transform ${DURATION} ${DELAYS[2]} ease`,
-            }}
-          >
-            {slide.description}
-          </p>
-
-          {/* CTA */}
-          <div
-            key={`cta-${current}`}
-            style={{
-              opacity: entered ? 1 : 0,
-              transform: entered ? "translateY(0)" : "translateY(16px)",
-              transition: `opacity ${DURATION} ${DELAYS[3]} ease, transform ${DURATION} ${DELAYS[3]} ease`,
-            }}
-          >
-            <button
-              className="group inline-flex items-center gap-2.5 font-semibold rounded-full cursor-pointer"
-              style={{
-                background: slide.accent,
-                color: "#fff",
-                fontFamily: "var(--font-heading)",
-                fontSize: "0.9rem",
-                padding: "0.9rem 2rem",
-                boxShadow: `0 8px 32px ${slide.accent}55`,
-                border: "none",
-                transition: "transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                const b = e.currentTarget as HTMLButtonElement;
-                b.style.transform = "translateY(-2px)";
-                b.style.boxShadow = `0 14px 40px ${slide.accent}66`;
-              }}
-              onMouseLeave={(e) => {
-                const b = e.currentTarget as HTMLButtonElement;
-                b.style.transform = "";
-                b.style.boxShadow = `0 8px 32px ${slide.accent}55`;
-              }}
-              onMouseDown={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)";
-              }}
-              onMouseUp={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-2px)";
-              }}
-              onClick={() => document.getElementById("programs")?.scrollIntoView({ behavior: "smooth" })}
-            >
-              {slide.cta}
-              <svg
-                width="15" height="15" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2.5"
-                strokeLinecap="round" strokeLinejoin="round"
-                className="group-hover:translate-x-1 transition-transform duration-200"
-                aria-hidden="true"
-              >
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        </div>
+      {/* ── Full-screen slide backgrounds ─────────────────────── */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+        <AnimatePresence mode="sync">
+          <SlideBg key={course.id} course={course} isActive />
+        </AnimatePresence>
       </div>
 
-      {/* ── Side previews (desktop) ────────────────────────────── */}
-      <div className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 z-30 flex-col gap-3 pr-10">
-        {[prevSlide, nextSlide].map((s, i) => (
-          <button
-            key={i}
-            onClick={i === 0 ? goPrev : goNext}
-            className="group flex items-center gap-3 opacity-50 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
-            style={{ background: "none", border: "none" }}
-            aria-label={i === 0 ? `Previous: ${s.title}` : `Next: ${s.title}`}
-          >
-            <div
-              className={`rounded-xl overflow-hidden border border-white/20 group-hover:border-white/50 transition-all duration-300 group-hover:scale-105`}
-              style={{ width: 88, height: 58 }}
-            >
-              <div className={`w-full h-full bg-gradient-to-br ${s.bg}`} />
-            </div>
-            <div className="text-left hidden xl:block">
-              <p className="text-white/40 text-[10px] tracking-widest uppercase font-semibold" style={{ fontFamily: "var(--font-heading)" }}>
-                {i === 0 ? "Prev" : "Next"}
-              </p>
-              <p className="text-white/65 text-xs font-medium mt-0.5 max-w-[110px] leading-snug" style={{ fontFamily: "var(--font-heading)" }}>
-                {s.title}
-              </p>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* ── Bottom controls ────────────────────────────────────── */}
-      <div className="absolute bottom-8 left-0 right-0 z-30 ff-container">
-        <div className="flex items-end justify-between">
-
-          {/* Progress bar + dots */}
-          <div className="flex flex-col gap-3">
-            <div className="w-40 h-px rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.15)" }}>
-              <div
-                style={{
-                  height: "100%",
-                  width: `${progress}%`,
-                  background: paused ? "rgba(255,255,255,0.3)" : slide.accent,
-                  borderRadius: "9999px",
-                  transition: paused ? "none" : "width 0.1s linear",
-                }}
-              />
-            </div>
-            <div className="flex items-center gap-2" role="tablist" aria-label="Slides">
-              {SLIDES.map((s, i) => (
-                <button
-                  key={s.id}
-                  role="tab"
-                  aria-selected={i === current}
-                  aria-label={`Slide ${i + 1}: ${s.title}`}
-                  onClick={() => goTo(i, i > current ? "next" : "prev")}
-                  style={{
-                    height: 8,
-                    width: i === current ? 28 : 8,
-                    borderRadius: "9999px",
-                    background: i === current ? slide.accent : "rgba(255,255,255,0.35)",
-                    border: "none",
-                    cursor: "pointer",
-                    transition: "width 0.3s ease, background 0.3s ease",
-                    padding: 0,
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Counter + pause/play + arrows */}
-          <div className="flex items-center gap-4">
-            <span
-              className="text-white/50 text-sm tabular-nums"
-              style={{ fontFamily: "var(--font-heading)" }}
-              aria-live="polite"
-            >
-              {String(current + 1).padStart(2, "0")} / {String(SLIDES.length).padStart(2, "0")}
-            </span>
-            <div className="flex gap-2">
-              {/* Prev */}
-              <button
-                onClick={goPrev}
-                className="h-10 w-10 rounded-full flex items-center justify-center text-white cursor-pointer transition-all duration-200 hover:bg-white/10"
-                style={{ border: "1px solid rgba(255,255,255,0.25)", background: "none" }}
-                aria-label="Previous slide"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
-              </button>
-
-              {/* Pause/Play */}
-              <button
-                onClick={() => setPaused((p) => !p)}
-                className="h-10 w-10 rounded-full flex items-center justify-center text-white cursor-pointer transition-all duration-200"
-                style={{
-                  border: paused ? `1.5px solid ${slide.accent}` : "1px solid rgba(255,255,255,0.25)",
-                  background: paused ? `${slide.accent}22` : "none",
-                }}
-                aria-label={paused ? "Resume autoplay" : "Pause autoplay"}
-                aria-pressed={paused}
-              >
-                {paused ? (
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5,3 19,12 5,21" /></svg>
-                ) : (
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" />
-                  </svg>
-                )}
-              </button>
-
-              {/* Next */}
-              <button
-                onClick={goNext}
-                className="h-10 w-10 rounded-full flex items-center justify-center text-white cursor-pointer transition-all duration-200 hover:bg-white/10"
-                style={{ border: "1px solid rgba(255,255,255,0.25)", background: "none" }}
-                aria-label="Next slide"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Scroll indicator ──────────────────────────────────── */}
+      {/* ── Overlay — stronger at bottom where text sits ───────── */}
       <div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 hidden md:flex flex-col items-center gap-1.5"
+        aria-hidden="true"
         style={{
-          opacity: entered ? 1 : 0,
-          transition: "opacity 1s 1s ease",
+          position: "absolute",
+          inset: 0,
+          zIndex: 1,
+          background:
+            "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.82) 100%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* ── Side slides (prev / next peek) ─────────────────────── */}
+      <AnimatePresence>
+        <SideSlide key={`prev-${prevCourse.id}`} course={prevCourse} side="prev" onClick={goPrev} />
+        <SideSlide key={`next-${nextCourse.id}`} course={nextCourse} side="next" onClick={goNext} />
+      </AnimatePresence>
+
+      {/* ── Main content — bottom-left, above overlay ──────────── */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 20,
+          padding: "0 clamp(80px, 14vw, 200px) clamp(1.5rem, 3vw, 2.5rem)",
         }}
       >
-        <span className="text-white/35 text-[10px] tracking-[0.18em] uppercase" style={{ fontFamily: "var(--font-heading)" }}>
-          Scroll
-        </span>
-        <div className="w-px h-8 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.15)" }}>
-          <div
-            className="w-full rounded-full"
+        {/* Text block */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={current}
+            variants={textContainer}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            style={{ marginBottom: "clamp(1rem, 2vw, 1.5rem)" }}
+          >
+            {/* Category */}
+            <motion.p
+              variants={textItem}
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontSize: "clamp(0.65rem, 1vw, 0.8rem)",
+                fontWeight: 600,
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                color: course.accent,
+                marginBottom: "0.5rem",
+              }}
+            >
+              {course.category}
+            </motion.p>
+
+            {/* Title */}
+            <motion.h1
+              variants={textItem}
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontSize: "clamp(1.6rem, 3.5vw, 3rem)",
+                fontWeight: 800,
+                letterSpacing: "-0.025em",
+                lineHeight: 1.1,
+                color: "#fff",
+                marginBottom: "0.65rem",
+                textShadow: "0 2px 20px rgba(0,0,0,0.4)",
+              }}
+            >
+              {course.title}
+            </motion.h1>
+
+            {/* Description */}
+            <motion.p
+              variants={textItem}
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(0.82rem, 1.2vw, 1rem)",
+                lineHeight: 1.6,
+                color: "rgba(255,255,255,0.72)",
+                maxWidth: "38rem",
+                marginBottom: "1.1rem",
+              }}
+            >
+              {course.description}
+            </motion.p>
+
+            {/* CTA */}
+            <motion.div variants={textItem}>
+              <a
+                href={course.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById("programs")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="group inline-flex items-center gap-2"
+                style={{
+                  fontFamily: "var(--font-heading)",
+                  fontSize: "clamp(0.78rem, 1vw, 0.88rem)",
+                  fontWeight: 600,
+                  color: "#fff",
+                  background: course.accent,
+                  padding: "0.55rem 1.25rem",
+                  borderRadius: "9999px",
+                  textDecoration: "none",
+                  boxShadow: `0 4px 20px ${course.accent}55`,
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)";
+                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 8px 28px ${course.accent}77`;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.transform = "";
+                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 4px 20px ${course.accent}55`;
+                }}
+                onMouseDown={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.transform = "scale(0.97)";
+                }}
+                onMouseUp={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)";
+                }}
+              >
+                {course.cta}
+                <svg
+                  width="13" height="13" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5"
+                  strokeLinecap="round" strokeLinejoin="round"
+                  className="group-hover:translate-x-0.5 transition-transform duration-200"
+                  aria-hidden="true"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </a>
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* ── Controls row ─────────────────────────────────────── */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "clamp(0.75rem, 2vw, 1.5rem)",
+          }}
+        >
+          {/* Prev arrow */}
+          <button
+            onClick={goPrev}
+            aria-label="Previous course"
             style={{
-              height: "40%",
-              background: "rgba(255,255,255,0.5)",
-              animation: reduced ? "none" : "heroScrollDown 1.7s ease-in-out infinite",
+              background: "none",
+              border: "1px solid rgba(255,255,255,0.25)",
+              color: "rgba(255,255,255,0.7)",
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              flexShrink: 0,
+              transition: "border-color 0.2s, color 0.2s, background 0.2s",
             }}
-          />
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.7)";
+              (e.currentTarget as HTMLButtonElement).style.color = "#fff";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.25)";
+              (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.7)";
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M19 12H5M12 5l-7 7 7 7" />
+            </svg>
+          </button>
+
+          {/* Progress dots + bar */}
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              gap: "clamp(0.3rem, 0.8vw, 0.6rem)",
+            }}
+            role="tablist"
+            aria-label="Course slides"
+          >
+            {COURSES.map((c, i) => {
+              const isActive = i === current;
+              return (
+                <button
+                  key={c.id}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-label={`Course ${i + 1}: ${c.title}`}
+                  onClick={() => goTo(i)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    flexShrink: isActive ? 1 : 0,
+                    flex: isActive ? 1 : "none",
+                    minWidth: isActive ? 0 : undefined,
+                    transition: "flex 0.4s ease",
+                  }}
+                >
+                  {isActive ? (
+                    /* Active: full-width progress bar */
+                    <div
+                      style={{
+                        width: "100%",
+                        height: 2,
+                        background: "rgba(255,255,255,0.2)",
+                        borderRadius: "9999px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: "100%",
+                          width: `${progress}%`,
+                          background: course.accent,
+                          borderRadius: "9999px",
+                          transition: paused ? "none" : "width 0.08s linear",
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    /* Inactive: small dot */
+                    <div
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background: "rgba(255,255,255,0.35)",
+                        transition: "background 0.2s",
+                        margin: "0 auto",
+                      }}
+                      onMouseEnter={(e) => ((e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.7)")}
+                      onMouseLeave={(e) => ((e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.35)")}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Slide counter */}
+          <span
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontSize: "clamp(0.7rem, 1vw, 0.8rem)",
+              fontWeight: 600,
+              color: "rgba(255,255,255,0.55)",
+              tabularNums: "tabular-nums",
+              letterSpacing: "0.06em",
+              flexShrink: 0,
+            } as React.CSSProperties}
+            aria-live="polite"
+          >
+            {String(current + 1).padStart(2, "0")} / {String(COURSES.length).padStart(2, "0")}
+          </span>
+
+          {/* Pause / Play */}
+          <button
+            onClick={() => setPaused((p) => !p)}
+            aria-label={paused ? "Resume autoplay" : "Pause autoplay"}
+            aria-pressed={paused}
+            style={{
+              background: "none",
+              border: `1px solid ${paused ? course.accent : "rgba(255,255,255,0.25)"}`,
+              color: paused ? course.accent : "rgba(255,255,255,0.7)",
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              flexShrink: 0,
+              transition: "border-color 0.25s, color 0.25s",
+            }}
+          >
+            {paused ? (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <polygon points="5,3 19,12 5,21" />
+              </svg>
+            ) : (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <rect x="6" y="4" width="4" height="16" rx="1" />
+                <rect x="14" y="4" width="4" height="16" rx="1" />
+              </svg>
+            )}
+          </button>
+
+          {/* Next arrow */}
+          <button
+            onClick={goNext}
+            aria-label="Next course"
+            style={{
+              background: "none",
+              border: "1px solid rgba(255,255,255,0.25)",
+              color: "rgba(255,255,255,0.7)",
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              flexShrink: 0,
+              transition: "border-color 0.2s, color 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.7)";
+              (e.currentTarget as HTMLButtonElement).style.color = "#fff";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.25)";
+              (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.7)";
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       </div>
-
-      <style>{`
-        @keyframes heroScrollDown {
-          0%   { transform: translateY(-100%); opacity: 0; }
-          30%  { opacity: 1; }
-          100% { transform: translateY(250%); opacity: 0; }
-        }
-      `}</style>
     </section>
   );
 }
