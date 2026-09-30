@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useCallback, useEffect } from "react";
-import { useInView, useReducedMotion } from "../hooks";
+import { useReducedMotion } from "../hooks";
 
 // ─── Magnetic hook (local) ────────────────────────────────────────
 function useMagnetic(strength = 0.3) {
@@ -103,10 +103,6 @@ export default function Footer() {
   const applyMag = useMagnetic(0.3);
   const reduced  = useReducedMotion();
 
-  // Scroll-triggered reveal for the big headline + word
-  const [ctaRef, ctaInView]  = useInView<HTMLDivElement>({ threshold: 0.1 });
-  const [wordRef, wordInView] = useInView<HTMLDivElement>({ threshold: 0.05 });
-
   // Parallax: move background image at ~30% scroll speed
   const bgRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -187,40 +183,6 @@ export default function Footer() {
       {/* ── CTA block ──────────────────────────────────────────── */}
       <div className="relative ff-container pt-24 pb-20" style={{ zIndex: 3 }}>
 
-        {/* Giant watermark word — scroll-triggered */}
-        <div
-          ref={wordRef}
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            pointerEvents: "none",
-            zIndex: 0,
-            opacity: wordInView || reduced ? 1 : 0,
-            transition: reduced ? "none" : "opacity 1.2s ease",
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: "clamp(8rem, 22vw, 22rem)",
-              fontWeight: 800,
-              letterSpacing: "-0.06em",
-              color: "transparent",
-              WebkitTextStroke: "1px rgba(255,255,255,0.07)",
-              userSelect: "none",
-              whiteSpace: "nowrap",
-              transform: wordInView || reduced ? "translateY(0)" : "translateY(40px)",
-              transition: reduced ? "none" : "opacity 1.2s ease, transform 1.2s ease",
-            }}
-          >
-            YOUR FUTURE
-          </span>
-        </div>
-
         {/* Decorative SVG */}
         <svg
           aria-hidden="true"
@@ -237,16 +199,10 @@ export default function Footer() {
           <line x1="0" y1="1" x2="1280" y2="1" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
         </svg>
 
-        {/* CTA content — scroll reveal */}
+        {/* CTA content */}
         <div
-          ref={ctaRef}
           className="relative flex flex-col items-center text-center"
-          style={{
-            zIndex: 1,
-            opacity: ctaInView || reduced ? 1 : 0,
-            transform: ctaInView || reduced ? "translateY(0)" : "translateY(32px)",
-            transition: reduced ? "none" : "opacity 0.8s ease, transform 0.8s ease",
-          }}
+          style={{ zIndex: 1 }}
         >
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-3 mb-7">
@@ -295,22 +251,13 @@ export default function Footer() {
               color: "rgba(255,255,255,0.75)",
               maxWidth: "38rem",
               marginBottom: "2.5rem",
-              opacity: ctaInView || reduced ? 1 : 0,
-              transform: ctaInView || reduced ? "translateY(0)" : "translateY(16px)",
-              transition: reduced ? "none" : "opacity 0.8s 0.1s ease, transform 0.8s 0.1s ease",
             }}
           >
             Explore our programs, discover your strengths, and take the first step toward a future you&apos;re proud of.
           </p>
 
           {/* Apply Now */}
-          <div
-            style={{
-              opacity: ctaInView || reduced ? 1 : 0,
-              transform: ctaInView || reduced ? "translateY(0)" : "translateY(12px)",
-              transition: reduced ? "none" : "opacity 0.8s 0.2s ease, transform 0.8s 0.2s ease",
-            }}
-          >
+          <div>
             <a
               ref={applyMag.ref as React.RefObject<HTMLAnchorElement>}
               href="#contact"
