@@ -154,33 +154,33 @@ export default function Footer() {
       />
 
       {/* ── Overlay stack ───────────────────────────────────────── */}
-      {/* Layer 1: deep teal tint — blends the image into the brand palette */}
+      {/* Layer 1: light teal tint — just enough to blend with brand palette */}
       <div
         aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
-          background: "rgba(0,40,36,0.72)",
+          background: "rgba(0,40,36,0.38)",
           zIndex: 1,
         }}
       />
-      {/* Layer 2: top-down gradient — darkens top for text readability */}
+      {/* Layer 2: gradient — darkens bottom bar only, keeps middle open */}
       <div
         aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(to bottom, rgba(0,30,26,0.55) 0%, rgba(0,20,18,0.3) 40%, rgba(0,20,18,0.5) 75%, rgba(0,15,13,0.82) 100%)",
+          background: "linear-gradient(to bottom, rgba(0,20,18,0.25) 0%, rgba(0,10,9,0.1) 35%, rgba(0,10,9,0.25) 70%, rgba(0,10,9,0.65) 100%)",
           zIndex: 2,
         }}
       />
-      {/* Layer 3: left vignette — helps readability on nav columns */}
+      {/* Layer 3: left vignette — subtle help for nav columns */}
       <div
         aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(to right, rgba(0,30,26,0.4) 0%, transparent 60%)",
+          background: "linear-gradient(to right, rgba(0,20,18,0.2) 0%, transparent 55%)",
           zIndex: 2,
         }}
       />
@@ -272,6 +272,7 @@ export default function Footer() {
               lineHeight: 1.08,
               color: "#fff",
               marginBottom: "1.25rem",
+              textShadow: "0 2px 24px rgba(0,0,0,0.5)",
             }}
           >
             Your Future{" "}
@@ -291,7 +292,7 @@ export default function Footer() {
               fontFamily: "var(--font-body)",
               fontSize: "clamp(1rem, 1.4vw, 1.125rem)",
               lineHeight: 1.7,
-              color: "rgba(255,255,255,0.5)",
+              color: "rgba(255,255,255,0.75)",
               maxWidth: "38rem",
               marginBottom: "2.5rem",
               opacity: ctaInView || reduced ? 1 : 0,
