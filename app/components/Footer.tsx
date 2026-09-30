@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import { useInView, useReducedMotion } from "../hooks";
 
 // ─── Magnetic hook (local) ────────────────────────────────────────
@@ -107,14 +107,85 @@ export default function Footer() {
   const [ctaRef, ctaInView]  = useInView<HTMLDivElement>({ threshold: 0.1 });
   const [wordRef, wordInView] = useInView<HTMLDivElement>({ threshold: 0.05 });
 
+  // Parallax: move background image at ~30% scroll speed
+  const bgRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (reduced) return;
+    const footer = bgRef.current?.closest("footer");
+    if (!footer) return;
+
+    const onScroll = () => {
+      const rect   = footer.getBoundingClientRect();
+      const vh     = window.innerHeight;
+      // Progress: 0 when bottom of footer enters viewport, 1 when footer top exits
+      const progress = 1 - (rect.bottom / (vh + rect.height));
+      const offset   = progress * 80; // max 80px travel
+      if (bgRef.current) {
+        bgRef.current.style.transform = `translateY(${offset}px)`;
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll(); // initialise
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [reduced]);
+
   return (
     <footer
       aria-label="Site footer"
-      style={{ background: "var(--ff-900)", overflow: "hidden" }}
+      style={{ position: "relative", overflow: "hidden" }}
       data-nav-theme="dark"
     >
+      {/* ── Background image layer ──────────────────────────────── */}
+      {/* Slightly oversized so parallax has room to move without gaps */}
+      <div
+        ref={bgRef}
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: "-80px 0",          // extra top/bottom for parallax travel
+          backgroundImage: "url('/footerbg.jpeg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center top",
+          backgroundRepeat: "no-repeat",
+          willChange: "transform",
+          zIndex: 0,
+        }}
+      />
+
+      {/* ── Overlay stack ───────────────────────────────────────── */}
+      {/* Layer 1: deep teal tint — blends the image into the brand palette */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,40,36,0.72)",
+          zIndex: 1,
+        }}
+      />
+      {/* Layer 2: top-down gradient — darkens top for text readability */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(to bottom, rgba(0,30,26,0.55) 0%, rgba(0,20,18,0.3) 40%, rgba(0,20,18,0.5) 75%, rgba(0,15,13,0.82) 100%)",
+          zIndex: 2,
+        }}
+      />
+      {/* Layer 3: left vignette — helps readability on nav columns */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(to right, rgba(0,30,26,0.4) 0%, transparent 60%)",
+          zIndex: 2,
+        }}
+      />
       {/* ── CTA block ──────────────────────────────────────────── */}
-      <div className="relative ff-container pt-24 pb-20">
+      <div className="relative ff-container pt-24 pb-20" style={{ zIndex: 3 }}>
 
         {/* Giant watermark word — scroll-triggered */}
         <div
@@ -139,7 +210,7 @@ export default function Footer() {
               fontWeight: 800,
               letterSpacing: "-0.06em",
               color: "transparent",
-              WebkitTextStroke: "1px rgba(255,255,255,0.04)",
+              WebkitTextStroke: "1px rgba(255,255,255,0.07)",
               userSelect: "none",
               whiteSpace: "nowrap",
               transform: wordInView || reduced ? "translateY(0)" : "translateY(40px)",
@@ -153,7 +224,7 @@ export default function Footer() {
         {/* Decorative SVG */}
         <svg
           aria-hidden="true"
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0, opacity: 0.7 }}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0, opacity: 0.3 }}
           viewBox="0 0 1280 560"
           preserveAspectRatio="xMidYMid slice"
         >
@@ -278,12 +349,12 @@ export default function Footer() {
       </div>
 
       {/* ── Divider ─────────────────────────────────────────────── */}
-      <div className="ff-container">
-        <div style={{ height: 1, background: "rgba(255,255,255,0.07)" }} />
+      <div className="ff-container" style={{ position: "relative", zIndex: 3 }}>
+        <div style={{ height: 1, background: "rgba(255,255,255,0.1)" }} />
       </div>
 
       {/* ── Nav grid ────────────────────────────────────────────── */}
-      <div className="ff-container py-16">
+      <div className="ff-container py-16" style={{ position: "relative", zIndex: 3 }}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
 
           {/* Brand col */}
@@ -360,8 +431,8 @@ export default function Footer() {
       </div>
 
       {/* ── Bottom bar ──────────────────────────────────────────── */}
-      <div className="ff-container"><div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} /></div>
-      <div className="ff-container py-6">
+      <div className="ff-container" style={{ position: "relative", zIndex: 3 }}><div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} /></div>
+      <div className="ff-container py-6" style={{ position: "relative", zIndex: 3 }}>
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <p style={{ fontFamily: "var(--font-body)", fontSize: "0.75rem", color: "rgba(255,255,255,0.22)" }}>
             © {new Date().getFullYear()} Future Focus · All Rights Reserved
