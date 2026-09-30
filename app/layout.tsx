@@ -17,12 +17,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Future Focus — Discover Your Future",
+  title: "Future Focus Academy — Discover Your Future",
   description:
-    "Future Focus empowers youth with the skills, knowledge, and confidence to build a brighter future through education, technology, and innovation.",
-  keywords: ["education", "youth", "technology", "skills", "innovation", "Future Focus"],
+    "Future Focus Academy empowers youth with the skills, knowledge, and confidence to build a brighter future through education, technology, and innovation.",
+  keywords: ["education", "youth", "technology", "skills", "innovation", "Future Focus Academy"],
   openGraph: {
-    title: "Future Focus",
+    title: "Future Focus Academy",
     description: "Empowering youth through education, technology, and innovation.",
     type: "website",
   },

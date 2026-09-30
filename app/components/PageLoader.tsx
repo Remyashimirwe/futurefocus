@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useReducedMotion } from "../hooks";
 
 export default function PageLoader() {
@@ -94,44 +95,18 @@ export default function PageLoader() {
           animation: "loaderFadeUp 0.6s 0.1s ease both",
         }}
       >
-        <svg
-          width="72"
-          height="72"
-          viewBox="0 0 72 72"
-          fill="none"
-          style={{ overflow: "visible" }}
+        <div
+          style={{
+            position: "relative",
+            width: 84,
+            height: 84,
+            borderRadius: 20,
+            overflow: "hidden",
+            background: "#f1f2f2",
+          }}
         >
-          {/* Outer circle — draws in */}
-          <circle
-            cx="36"
-            cy="36"
-            r="32"
-            stroke="rgba(24,186,175,0.2)"
-            strokeWidth="1.5"
-            fill="none"
-          />
-          <circle
-            cx="36"
-            cy="36"
-            r="32"
-            stroke="var(--ff-400)"
-            strokeWidth="1.5"
-            fill="none"
-            strokeDasharray="201"
-            strokeDashoffset="201"
-            strokeLinecap="round"
-            style={{
-              animation: "drawCircle 1s 0.2s cubic-bezier(0.4,0,0.2,1) forwards",
-            }}
-          />
-          {/* FF lettermark */}
-          <rect x="18" y="20" width="16" height="32" rx="3" fill="var(--ff-700)" />
-          <rect x="18" y="20" width="22" height="7" rx="3" fill="var(--ff-500)" />
-          <rect x="18" y="32" width="18" height="6" rx="3" fill="var(--ff-400)" />
-          <rect x="38" y="20" width="16" height="32" rx="3" fill="var(--ff-700)" />
-          <rect x="38" y="20" width="22" height="7" rx="3" fill="var(--ff-500)" />
-          <rect x="38" y="32" width="18" height="6" rx="3" fill="var(--ff-400)" />
-        </svg>
+          <Image src="/future focus.jpeg" alt="" fill sizes="84px" priority style={{ objectFit: "cover", transform: "scale(1.12)" }} />
+        </div>
 
         {/* Glow */}
         <div
@@ -162,7 +137,7 @@ export default function PageLoader() {
           }}
         >
           Future
-          <span style={{ color: "var(--ff-400)" }}>Focus</span>
+          <span style={{ color: "var(--ff-400)" }}>Focus</span> Academy
         </span>
       </div>
 
@@ -219,9 +194,6 @@ export default function PageLoader() {
       </p>
 
       <style>{`
-        @keyframes drawCircle {
-          to { stroke-dashoffset: 0; }
-        }
         @keyframes loaderFadeUp {
           from { opacity: 0; transform: translateY(12px); }
           to   { opacity: 1; transform: translateY(0); }

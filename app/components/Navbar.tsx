@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 
 const NAV_LINKS = [
   { href: "#home",          label: "Home" },
@@ -118,13 +119,13 @@ export default function Navbar() {
         <button
           onClick={() => handleNavClick("#home")}
           style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: "0.6rem" }}
-          aria-label="Future Focus — back to top"
+          aria-label="Future Focus Academy — back to top"
         >
-          <div style={{ height: 34, width: 34, borderRadius: 9, background: "var(--ff-700)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.78rem", flexShrink: 0 }}>
-            FF
+          <div style={{ height: scrolled ? 38 : 44, width: scrolled ? 38 : 44, borderRadius: scrolled ? 10 : 11, background: "#f1f2f2", position: "relative", overflow: "hidden", flexShrink: 0, transition: "height 0.3s ease, width 0.3s ease, border-radius 0.3s ease" }}>
+            <Image src="/future focus.jpeg" alt="" fill sizes="44px" priority style={{ objectFit: "cover", transform: "scale(1.12)" }} />
           </div>
           <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.05rem", letterSpacing: "-0.02em", lineHeight: 1, color: logoColor, transition: "color 0.4s ease" }}>
-            Future<span style={{ color: "var(--ff-400)" }}>Focus</span>
+            Future<span style={{ color: "var(--ff-400)" }}>Focus</span> Academy
           </span>
         </button>
 

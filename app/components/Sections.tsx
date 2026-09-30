@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import Image from "next/image";
 import { useInView, useReducedMotion } from "../hooks";
 
 // ─── Reveal wrapper ───────────────────────────────────────────────
@@ -108,26 +109,37 @@ const PROGRAMS = [
   {
     icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></svg>),
     title: "Digital Skills", desc: "Coding, design, and digital literacy for the modern world.", tag: "Technology",
-  },
-  {
-    icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>),
-    title: "Leadership & Communication", desc: "Build the soft skills that set you apart in any career.", tag: "Personal Development",
-  },
-  {
-    icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><path d="M14 17.5h7M17.5 14v7" /></svg>),
-    title: "Innovation & Entrepreneurship", desc: "Turn bold ideas into real-world projects and ventures.", tag: "Innovation",
+    img: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=900&q=80&auto=format&fit=crop",
   },
   {
     icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" /></svg>),
     title: "Career Readiness", desc: "CV writing, interview skills, and professional networking.", tag: "Career",
+    img: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=900&q=80&auto=format&fit=crop",
   },
   {
     icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" /></svg>),
     title: "Global Perspectives", desc: "Expand your worldview with international learning and exchange.", tag: "Global",
+    img: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=900&q=80&auto=format&fit=crop",
   },
   {
     icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>),
-    title: "Creative Arts & Media", desc: "Photography, video, storytelling, and creative expression.", tag: "Creative",
+    title: "Creative Arts & Media", desc: "Video, storytelling, design, and creative expression.", tag: "Creative",
+    img: "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=900&q=80&auto=format&fit=crop",
+  },
+  {
+    icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M16 18l6-6-6-6" /><path d="M8 6l-6 6 6 6" /></svg>),
+    title: "Coding & Software Development", desc: "Learn web development, Python, and problem-solving by building real apps from scratch.", tag: "Technology",
+    img: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=900&q=80&auto=format&fit=crop",
+  },
+  {
+    icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>),
+    title: "Music Production", desc: "Compose, record, and mix your own tracks with modern production tools and studio techniques.", tag: "Music",
+    img: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=900&q=80&auto=format&fit=crop",
+  },
+  {
+    icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" /></svg>),
+    title: "Photography", desc: "Master camera fundamentals, lighting, and editing to tell powerful visual stories.", tag: "Creative",
+    img: "https://images.unsplash.com/photo-1502982720700-bfff97f2ecac?w=900&q=80&auto=format&fit=crop",
   },
 ];
 
@@ -151,12 +163,25 @@ export function ProgramsSection() {
           {PROGRAMS.map((p, i) => (
             <Reveal key={i} delay={i * 0.07}>
               <TiltCard className="relative group bg-white rounded-2xl p-7 border h-full cursor-pointer" style={{ borderColor: "var(--gray-100)", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-                {/* Icon */}
+                {/* Photo + icon badge */}
                 <div
-                  className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5 transition-all duration-300 group-hover:scale-110"
-                  style={{ background: "var(--ff-100)", color: "var(--ff-700)" }}
+                  className="relative rounded-xl overflow-hidden mb-5"
+                  style={{ height: 148, background: "var(--ff-100)", zIndex: 2 }}
                 >
-                  {p.icon}
+                  <Image
+                    src={p.img}
+                    alt=""
+                    fill
+                    sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
+                    style={{ objectFit: "cover" }}
+                    className="transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div
+                    className="absolute top-3 left-3 inline-flex items-center justify-center w-10 h-10 rounded-lg"
+                    style={{ background: "rgba(255,255,255,0.94)", color: "var(--ff-700)" }}
+                  >
+                    {p.icon}
+                  </div>
                 </div>
                 {/* Tag */}
                 <span className="text-[11px] font-semibold tracking-widest uppercase mb-2 block" style={{ color: "var(--ff-400)", fontFamily: "var(--font-heading)" }}>
@@ -215,12 +240,12 @@ export function WhyChooseUsSection() {
           {/* Left */}
           <div>
             <Reveal>
-              <span className="text-xs font-semibold tracking-[0.16em] uppercase mb-3 block" style={{ color: "var(--ff-500)", fontFamily: "var(--font-heading)" }}>Why Future Focus</span>
+              <span className="text-xs font-semibold tracking-[0.16em] uppercase mb-3 block" style={{ color: "var(--ff-500)", fontFamily: "var(--font-heading)" }}>Why Future Focus Academy</span>
               <h2 className="text-4xl font-extrabold mb-6 leading-tight" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-950)" }}>
                 Built for the Next Generation
               </h2>
               <p className="mb-10 text-lg" style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)", lineHeight: 1.7 }}>
-                Future Focus is more than a program—it&apos;s a movement. We believe every young person deserves the tools, guidance, and community to shape their own future.
+                Future Focus Academy is more than a program—it&apos;s a movement. We believe every young person deserves the tools, guidance, and community to shape their own future.
               </p>
             </Reveal>
             <div className="flex flex-col gap-7">
@@ -266,12 +291,12 @@ export function WhyChooseUsSection() {
 
 // ─── Gallery + Lightbox ───────────────────────────────────────────
 const GALLERY_ITEMS = [
-  { label: "Workshop Session",  color: "from-[#005850] to-[#00a79d]", size: "lg" as const },
-  { label: "Coding Bootcamp",   color: "from-[#00706b] to-[#18baaf]", size: "sm" as const },
-  { label: "Team Projects",     color: "from-[#003d38] to-[#00706b]", size: "sm" as const },
-  { label: "Graduation Day",    color: "from-[#00a79d] to-[#4fcdc4]", size: "md" as const },
-  { label: "Innovation Fair",   color: "from-[#005850] to-[#18baaf]", size: "md" as const },
-  { label: "Guest Speakers",    color: "from-[#00706b] to-[#00a79d]", size: "sm" as const },
+  { label: "Workshop Session",  color: "from-[#005850] to-[#00a79d]", size: "lg" as const, img: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1200&q=80&auto=format&fit=crop" },
+  { label: "Coding Bootcamp",   color: "from-[#00706b] to-[#18baaf]", size: "sm" as const, img: "https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?w=1200&q=80&auto=format&fit=crop" },
+  { label: "Team Projects",     color: "from-[#003d38] to-[#00706b]", size: "sm" as const, img: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&q=80&auto=format&fit=crop" },
+  { label: "Graduation Day",    color: "from-[#00a79d] to-[#4fcdc4]", size: "md" as const, img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&q=80&auto=format&fit=crop" },
+  { label: "Innovation Fair",   color: "from-[#005850] to-[#18baaf]", size: "md" as const, img: "https://images.unsplash.com/photo-1471341971476-ae15ff5dd4ea?w=1200&q=80&auto=format&fit=crop" },
+  { label: "Guest Speakers",    color: "from-[#00706b] to-[#00a79d]", size: "sm" as const, img: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200&q=80&auto=format&fit=crop" },
 ];
 
 function Lightbox({
@@ -357,18 +382,20 @@ function Lightbox({
         onClick={(e) => e.stopPropagation()}
       >
         <div className={`absolute inset-0 bg-gradient-to-br ${item.color}`} />
-        <svg className="absolute inset-0 w-full h-full" aria-hidden="true">
-          <defs><pattern id={`lb-pat-${index}`} x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M40 0L0 0 0 40" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-          </pattern></defs>
-          <rect width="100%" height="100%" fill={`url(#lb-pat-${index})`} />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-          <svg className="text-white/20" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" />
-          </svg>
+        <Image
+          src={item.img}
+          alt={item.label}
+          fill
+          sizes="(max-width: 900px) 90vw, 860px"
+          style={{ objectFit: "cover" }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.12) 45%, rgba(0,0,0,0.3) 100%)" }}
+        />
+        <div className="absolute bottom-4 left-4 pr-16">
           <p className="text-white font-semibold text-lg" style={{ fontFamily: "var(--font-heading)" }}>{item.label}</p>
-          <p className="text-white/50 text-sm" style={{ fontFamily: "var(--font-body)" }}>Photo placeholder</p>
+          <p className="text-white/60 text-sm" style={{ fontFamily: "var(--font-body)" }}>Future Focus Academy</p>
         </div>
         {/* Counter */}
         <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.4)" }}>
@@ -407,7 +434,7 @@ export function GallerySection() {
           <span className="text-xs font-semibold tracking-[0.16em] uppercase mb-3 block" style={{ color: "var(--ff-500)", fontFamily: "var(--font-heading)" }}>Moments & Memories</span>
           <h2 className="text-4xl font-extrabold mb-4" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-950)" }}>Gallery</h2>
           <p style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)", lineHeight: 1.7 }}>
-            A glimpse into the vibrant world of Future Focus — learning, collaborating, and growing together.
+            A glimpse into the vibrant world of Future Focus Academy — learning, collaborating, and growing together.
           </p>
         </Reveal>
 
@@ -432,20 +459,21 @@ export function GallerySection() {
                 aria-label={`Open ${item.label}`}
               >
                 {/* Background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${item.color} transition-transform duration-500 group-hover:scale-105`} />
-                {/* Grid overlay */}
-                <svg className="absolute inset-0 w-full h-full opacity-10" aria-hidden="true">
-                  <defs><pattern id={`gpat-${i}`} x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
-                    <path d="M30 0L0 0 0 30" fill="none" stroke="white" strokeWidth="0.5" />
-                  </pattern></defs>
-                  <rect width="100%" height="100%" fill={`url(#gpat-${i})`} />
-                </svg>
-                {/* Camera icon */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <svg className="text-white/20 group-hover:text-white/35 transition-colors duration-300" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" />
-                  </svg>
-                </div>
+                <div className={`absolute inset-0 bg-gradient-to-br ${item.color}`} />
+                {/* Photo */}
+                <Image
+                  src={item.img}
+                  alt=""
+                  fill
+                  sizes="(max-width: 768px) 50vw, 33vw"
+                  style={{ objectFit: "cover" }}
+                  className="transition-transform duration-500 group-hover:scale-105"
+                />
+                {/* Contrast overlay */}
+                <div
+                  className="absolute inset-0"
+                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.05) 55%, rgba(0,0,0,0.18) 100%)" }}
+                />
                 {/* Label reveal on hover */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/55 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                   <p className="text-white text-sm font-semibold text-left" style={{ fontFamily: "var(--font-heading)" }}>{item.label}</p>

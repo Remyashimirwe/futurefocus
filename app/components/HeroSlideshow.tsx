@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { useReducedMotion } from "../hooks";
 
@@ -15,6 +16,7 @@ interface Course {
   gradient: string;
   accent: string;
   bgPosition: string;
+  image: string;
 }
 
 const COURSES: Course[] = [
@@ -28,6 +30,7 @@ const COURSES: Course[] = [
     gradient: "linear-gradient(135deg, #003d38 0%, #005850 35%, #00706b 65%, #00a79d 100%)",
     accent: "#18BAAF",
     bgPosition: "center center",
+    image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1600&q=80&auto=format&fit=crop",
   },
   {
     id: 1,
@@ -39,31 +42,10 @@ const COURSES: Course[] = [
     gradient: "linear-gradient(135deg, #001a2c 0%, #003050 35%, #005880 65%, #0084a8 100%)",
     accent: "#18BAAF",
     bgPosition: "center top",
+    image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=1600&q=80&auto=format&fit=crop",
   },
   {
     id: 2,
-    category: "Leadership",
-    title: "Lead With Confidence",
-    description: "Develop communication, teamwork, and leadership skills for your future.",
-    cta: "Explore Course",
-    href: "#programs",
-    gradient: "linear-gradient(135deg, #1a0a2e 0%, #2d1155 35%, #4a1a7a 65%, #6b2fa0 100%)",
-    accent: "#18BAAF",
-    bgPosition: "center center",
-  },
-  {
-    id: 3,
-    category: "Entrepreneurship",
-    title: "Build.\u00a0Create.\u00a0Grow.",
-    description: "Turn your ideas into opportunities through practical entrepreneurship training.",
-    cta: "Explore Course",
-    href: "#programs",
-    gradient: "linear-gradient(135deg, #1a1200 0%, #3d2c00 35%, #705200 65%, #a07800 100%)",
-    accent: "#18BAAF",
-    bgPosition: "center bottom",
-  },
-  {
-    id: 4,
     category: "Creative Technology",
     title: "Create What Comes Next",
     description: "Explore creativity, technology, and innovation through practical projects.",
@@ -72,10 +54,11 @@ const COURSES: Course[] = [
     gradient: "linear-gradient(135deg, #0d1a0d 0%, #1a3a1a 35%, #1a5a2e 65%, #1a7a42 100%)",
     accent: "#18BAAF",
     bgPosition: "center center",
+    image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=1600&q=80&auto=format&fit=crop",
   },
 ];
 
-const AUTOPLAY_MS = 3000;
+const AUTOPLAY_MS = 10000;
 
 // ─── Slide panel (used for all three visible panels) ───────────────
 function SlidePanel({
@@ -129,6 +112,15 @@ function SlidePanel({
             willChange: "transform, opacity",
           }}
         >
+          {/* Photo (gradient stays behind as fallback) */}
+          <Image
+            src={course.image}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 100vw, 90vw"
+            priority={isCenter}
+            style={{ objectFit: "cover", objectPosition: course.bgPosition }}
+          />
           {/* Dot texture */}
           <svg aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: isCenter ? 0.06 : 0.03 }} preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 400">
             <defs><pattern id={`dot-${course.id}-${role}`} x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="white" /></pattern></defs>
@@ -269,9 +261,9 @@ export default function HeroSlideshow() {
       style={{
         position: "relative",
         width: "100%",
-        height: "100svh",
+        height: "90svh",
         minHeight: 520,
-        maxHeight: 980,
+        maxHeight: 880,
         background: "#050e0d",
         overflow: "hidden",
         display: "flex",

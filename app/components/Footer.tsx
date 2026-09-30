@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useCallback, useEffect } from "react";
+import Image from "next/image";
 import { useReducedMotion } from "../hooks";
 
 // ─── Magnetic hook (local) ────────────────────────────────────────
@@ -308,11 +309,11 @@ export default function Footer() {
           {/* Brand col */}
           <div className="lg:col-span-2 flex flex-col gap-5">
             <div className="flex items-center gap-3">
-              <div style={{ height: 40, width: 40, borderRadius: 10, background: "var(--ff-700)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.8rem", flexShrink: 0 }}>
-                FF
+              <div style={{ height: 40, width: 40, borderRadius: 10, background: "#f1f2f2", position: "relative", overflow: "hidden", flexShrink: 0 }}>
+                <Image src="/future focus.jpeg" alt="" fill sizes="40px" style={{ objectFit: "cover", transform: "scale(1.12)" }} />
               </div>
               <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.25rem", letterSpacing: "-0.02em", color: "#fff" }}>
-                Future<span style={{ color: "var(--ff-400)" }}>Focus</span>
+                Future<span style={{ color: "var(--ff-400)" }}>Focus</span> Academy
               </span>
             </div>
             <p style={{ fontFamily: "var(--font-body)", fontSize: "0.875rem", lineHeight: 1.65, color: "rgba(255,255,255,0.4)", maxWidth: "22rem" }}>
@@ -383,7 +384,7 @@ export default function Footer() {
       <div className="ff-container py-6" style={{ position: "relative", zIndex: 3 }}>
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <p style={{ fontFamily: "var(--font-body)", fontSize: "0.75rem", color: "rgba(255,255,255,0.22)" }}>
-            © {new Date().getFullYear()} Future Focus · All Rights Reserved
+            © {new Date().getFullYear()} Future Focus Academy · All Rights Reserved
           </p>
           <div className="flex items-center gap-5">
             {["Privacy Policy", "Terms"].map((label) => (
