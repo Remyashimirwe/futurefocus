@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback } from "react";
 import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 import { useReducedMotion } from "../hooks";
 
 // ─── Magnetic hook (local) ────────────────────────────────────────
@@ -35,12 +36,10 @@ function useMagnetic(strength = 0.3) {
 
 // ─── Footer link with animated underline ─────────────────────────
 function FooterLink({ href, label }: { href: string; label: string }) {
+  const router = useRouter();
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    const id = href.startsWith("#") ? href.slice(1) : null;
-    if (id) {
-      e.preventDefault();
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-    }
+    e.preventDefault();
+    router.push(href);
   };
   return (
     <a
@@ -102,53 +101,19 @@ function SocialButton({ href, label, children }: { href: string; label: string; 
 // ─── Main Footer ──────────────────────────────────────────────────
 export default function Footer() {
   const applyMag = useMagnetic(0.3);
-  const reduced  = useReducedMotion();
-
-  // Parallax: move background image at ~30% scroll speed
-  const bgRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (reduced) return;
-    const footer = bgRef.current?.closest("footer");
-    if (!footer) return;
-
-    const onScroll = () => {
-      const rect   = footer.getBoundingClientRect();
-      const vh     = window.innerHeight;
-      // Progress: 0 when bottom of footer enters viewport, 1 when footer top exits
-      const progress = 1 - (rect.bottom / (vh + rect.height));
-      const offset   = progress * 80; // max 80px travel
-      if (bgRef.current) {
-        bgRef.current.style.transform = `translateY(${offset}px)`;
-      }
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll(); // initialise
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [reduced]);
+  const router   = useRouter();
+  const pathname = usePathname();
 
   return (
     <footer
       aria-label="Site footer"
-      style={{ position: "relative", overflow: "hidden" }}
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        background: "linear-gradient(160deg, var(--ff-900) 0%, #002a26 55%, #001a18 100%)",
+      }}
       data-nav-theme="dark"
     >
-      {/* ── Background image layer ──────────────────────────────── */}
-      {/* Slightly oversized so parallax has room to move without gaps */}
-      <div
-        ref={bgRef}
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: "-80px 0",          // extra top/bottom for parallax travel
-          backgroundImage: "url('/footerbg.jpeg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center top",
-          backgroundRepeat: "no-repeat",
-          willChange: "transform",
-          zIndex: 0,
-        }}
-      />
 
       {/* ── Overlay stack ───────────────────────────────────────── */}
       {/* Layer 1: light teal tint — just enough to blend with brand palette */}
@@ -261,7 +226,7 @@ export default function Footer() {
           <div>
             <a
               ref={applyMag.ref as React.RefObject<HTMLAnchorElement>}
-              href="#contact"
+              href="/apply"
               onMouseMove={applyMag.onMouseMove as unknown as React.MouseEventHandler<HTMLAnchorElement>}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLAnchorElement).style.background = "var(--ff-500)";
@@ -276,7 +241,11 @@ export default function Footer() {
               onMouseUp={(e)   => { (e.currentTarget as HTMLAnchorElement).style.transform = ""; }}
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+                if (pathname === "/apply") {
+                  document.getElementById("apply-form")?.scrollIntoView({ behavior: "smooth" });
+                } else {
+                  router.push("/apply");
+                }
               }}
               className="inline-flex items-center gap-2.5 font-semibold rounded-full"
               style={{
@@ -339,7 +308,7 @@ export default function Footer() {
           <div>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--ff-400)", marginBottom: "1.25rem" }}>Explore</h3>
             <ul className="flex flex-col gap-3" role="list">
-              {[["#home","Home"],["#programs","Programs"],["#why-choose-us","Why Choose Us"],["#gallery","Gallery"]].map(([href,label]) => (
+              {[["/","Home"],["/programs","Programs"],["/why-choose-us","Why Choose Us"],["/gallery","Gallery"]].map(([href,label]) => (
                 <li key={href}><FooterLink href={href} label={label} /></li>
               ))}
             </ul>
@@ -349,7 +318,7 @@ export default function Footer() {
           <div>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--ff-400)", marginBottom: "1.25rem" }}>Connect</h3>
             <ul className="flex flex-col gap-3" role="list">
-              {[["#contact","Contact Us"],["#contact","Apply"]].map(([href,label],i) => (
+              {[["/contact","Contact Us"],["/apply","Apply"],["/login","Login"]].map(([href,label],i) => (
                 <li key={i}><FooterLink href={href} label={label} /></li>
               ))}
             </ul>
@@ -362,16 +331,25 @@ export default function Footer() {
               {[
                 { icon: (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>), value: "hello@futurefocus.org", href: "mailto:hello@futurefocus.org" },
                 { icon: (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.01 1.18 2 2 0 012 .01h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" /></svg>), value: "+250 700 000 000", href: "tel:+250700000000" },
-                { icon: (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></svg>), value: "Kigali, Rwanda", href: "#" },
+                { icon: (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></svg>), value: "Kigali, Rwanda", href: "" },
               ].map((item, i) => (
                 <li key={i}>
-                  <a href={item.href} className="inline-flex items-start gap-2.5 text-sm" style={{ color: "rgba(255,255,255,0.45)", fontFamily: "var(--font-body)", textDecoration: "none", transition: "color 0.2s" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.85)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
+                  <span
+                    className="inline-flex items-start gap-2.5 text-sm"
+                    style={{ color: "rgba(255,255,255,0.45)", fontFamily: "var(--font-body)" }}
                   >
                     <span className="mt-0.5 shrink-0" style={{ color: "var(--ff-400)" }}>{item.icon}</span>
-                    {item.value}
-                  </a>
+                    {item.href ? (
+                      <a href={item.href} style={{ color: "inherit", textDecoration: "none", transition: "color 0.2s" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.85)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = "inherit")}
+                      >
+                        {item.value}
+                      </a>
+                    ) : (
+                      item.value
+                    )}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -380,23 +358,11 @@ export default function Footer() {
       </div>
 
       {/* ── Bottom bar ──────────────────────────────────────────── */}
-      <div className="ff-container" style={{ position: "relative", zIndex: 3 }}><div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} /></div>
-      <div className="ff-container py-6" style={{ position: "relative", zIndex: 3 }}>
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p style={{ fontFamily: "var(--font-body)", fontSize: "0.75rem", color: "rgba(255,255,255,0.22)" }}>
-            © {new Date().getFullYear()} Future Focus Academy · All Rights Reserved
-          </p>
-          <div className="flex items-center gap-5">
-            {["Privacy Policy", "Terms"].map((label) => (
-              <a key={label} href="#" style={{ fontFamily: "var(--font-body)", fontSize: "0.75rem", color: "rgba(255,255,255,0.22)", textDecoration: "none", transition: "color 0.2s" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.55)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.22)")}
-              >
-                {label}
-              </a>
-            ))}
-          </div>
-        </div>
+      <div className="ff-container" style={{ position: "relative", zIndex: 3 }}><div style={{ height: 1, background: "rgba(255,255,255,0.1)" }} /></div>
+      <div className="ff-container py-7" style={{ position: "relative", zIndex: 3 }}>
+        <p className="text-center" style={{ fontFamily: "var(--font-body)", fontSize: "0.8rem", color: "rgba(255,255,255,0.45)" }}>
+          © {new Date().getFullYear()} Future Focus Academy · All Rights Reserved
+        </p>
       </div>
     </footer>
   );

@@ -1,36 +1,37 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 
 const NAV_LINKS = [
-  { href: "#home",          label: "Home" },
-  { href: "#programs",      label: "Programs" },
-  { href: "#why-choose-us", label: "Why Choose Us" },
-  { href: "#gallery",       label: "Gallery" },
-  { href: "#contact",       label: "Contact Us" },
+  { href: "/",             label: "Home" },
+  { href: "/programs",     label: "Programs" },
+  { href: "/why-choose-us", label: "Why Choose Us" },
+  { href: "/gallery",      label: "Gallery" },
+  { href: "/contact",      label: "Contact Us" },
 ];
 
 type NavTheme = "dark" | "light";
 
-const SECTION_THEMES = [
-  { id: "home",          theme: "dark"  as NavTheme },
-  { id: "programs",      theme: "light" as NavTheme },
-  { id: "why-choose-us", theme: "light" as NavTheme },
-  { id: "gallery",       theme: "light" as NavTheme },
-  { id: "contact",       theme: "light" as NavTheme },
-];
+// Pages whose first screen is a dark hero → element id of that hero
+const DARK_HERO_ROUTES: Record<string, string> = {
+  "/": "home",
+  "/apply": "apply-hero",
+  "/login": "login-hero",
+};
 
 // Navbar height: compact when scrolled, taller at top
 const NAV_H_TOP      = 64; // px — at top of page
 const NAV_H_SCROLLED = 52; // px — after scroll
 
 export default function Navbar() {
-  const [scrolled,       setScrolled]       = useState(false);
-  const [activeSection,  setActiveSection]  = useState("home");
-  const [navTheme,       setNavTheme]       = useState<NavTheme>("dark");
-  const [menuOpen,       setMenuOpen]       = useState(false);
-  const observersRef = useRef<IntersectionObserver[]>([]);
+  const pathname = usePathname();
+  const router = useRouter();
+  const darkHeroId = DARK_HERO_ROUTES[pathname] ?? null;
+  const [scrolled, setScrolled] = useState(false);
+  const [navTheme, setNavTheme] = useState<NavTheme>(darkHeroId ? "dark" : "light");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Sync navbar height to CSS variable so hero can read it
   useEffect(() => {
@@ -50,34 +51,48 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Intersection Observer for adaptive theme
+  // Dark-hero pages: dark while the hero is on screen, light once past it
   useEffect(() => {
-    observersRef.current.forEach((o) => o.disconnect());
-    observersRef.current = [];
-    const NAVBAR_H = 90;
-    SECTION_THEMES.forEach(({ id, theme }) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const obs = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) { setNavTheme(theme); setActiveSection(id); }
-        },
-        { rootMargin: `-${NAVBAR_H}px 0px -${window.innerHeight - NAVBAR_H - 2}px 0px`, threshold: 0 }
-      );
-      obs.observe(el);
-      observersRef.current.push(obs);
-    });
-    return () => observersRef.current.forEach((o) => o.disconnect());
-  }, []);
+    if (!darkHeroId) return;
+    const el = document.getElementById(darkHeroId);
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setNavTheme(entry.isIntersecting ? "dark" : "light"),
+      { rootMargin: "-80px 0px 0px 0px", threshold: 0 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [darkHeroId]);
 
   const handleNavClick = (href: string) => {
     setMenuOpen(false);
-    const id = href.slice(1);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (href === pathname) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      router.push(href);
+    }
+  };
+
+  const handleApplyClick = () => {
+    setMenuOpen(false);
+    if (pathname === "/apply") {
+      document.getElementById("apply-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      router.push("/apply");
+    }
+  };
+
+  const handleLoginClick = () => {
+    setMenuOpen(false);
+    if (pathname === "/login") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      router.push("/login");
+    }
   };
 
   const isDark    = navTheme === "dark";
-  const isAtHero  = !scrolled && activeSection === "home";
+  const isAtHero  = !scrolled && isDark;
 
   const navBg = isAtHero
     ? "transparent"
@@ -117,7 +132,7 @@ export default function Navbar() {
       >
         {/* Logo */}
         <button
-          onClick={() => handleNavClick("#home")}
+          onClick={() => handleNavClick("/")}
           style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: "0.6rem" }}
           aria-label="Future Focus Academy — back to top"
         >
@@ -132,8 +147,7 @@ export default function Navbar() {
         {/* Desktop links */}
         <ul className="hidden md:flex items-center gap-0.5" role="list">
           {NAV_LINKS.map(({ href, label }) => {
-            const id       = href.slice(1);
-            const isActive = activeSection === id;
+            const isActive = pathname === href;
             return (
               <li key={href}>
                 <button
@@ -173,10 +187,37 @@ export default function Navbar() {
           })}
         </ul>
 
-        {/* Apply CTA */}
-        <div className="hidden md:flex items-center">
+        {/* Login + Apply CTA */}
+        <div className="hidden md:flex items-center gap-2.5">
           <button
-            onClick={() => handleNavClick("#contact")}
+            onClick={handleLoginClick}
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontSize: "0.84rem",
+              fontWeight: 600,
+              padding: "0.46rem 1.15rem",
+              borderRadius: "9999px",
+              background: "transparent",
+              border: `1.5px solid ${isAtHero || isDark ? "rgba(255,255,255,0.35)" : "var(--gray-300)"}`,
+              color: textColor,
+              cursor: "pointer",
+              transition: "background 0.22s, color 0.22s, border-color 0.22s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = hoverBg;
+              (e.currentTarget as HTMLButtonElement).style.color = hoverText;
+              (e.currentTarget as HTMLButtonElement).style.borderColor = isAtHero || isDark ? "rgba(255,255,255,0.7)" : "var(--ff-400)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+              (e.currentTarget as HTMLButtonElement).style.color = textColor;
+              (e.currentTarget as HTMLButtonElement).style.borderColor = isAtHero || isDark ? "rgba(255,255,255,0.35)" : "var(--gray-300)";
+            }}
+          >
+            Login
+          </button>
+          <button
+            onClick={handleApplyClick}
             style={{
               fontFamily: "var(--font-heading)",
               fontSize: "0.84rem",
@@ -234,7 +275,7 @@ export default function Navbar() {
       <div
         className="md:hidden overflow-hidden"
         style={{
-          maxHeight: menuOpen ? "360px" : "0",
+          maxHeight: menuOpen ? "450px" : "0",
           transition: "max-height 0.32s cubic-bezier(0.4,0,0.2,1)",
           background: isDark ? "rgba(0,30,27,0.97)" : "rgba(255,255,255,0.98)",
           backdropFilter: "blur(16px)",
@@ -244,7 +285,7 @@ export default function Navbar() {
       >
         <ul className="flex flex-col" role="list">
           {NAV_LINKS.map(({ href, label }) => {
-            const isActive = activeSection === href.slice(1);
+            const isActive = pathname === href;
             return (
               <li key={href}>
                 <button
@@ -268,9 +309,29 @@ export default function Navbar() {
               </li>
             );
           })}
-          <li style={{ padding: `0.75rem clamp(1rem, 3vw, 2.5rem)` }}>
+          <li style={{ padding: `0.75rem clamp(1rem, 3vw, 2.5rem) 0.4rem` }}>
             <button
-              onClick={() => handleNavClick("#contact")}
+              onClick={handleLoginClick}
+              style={{
+                width: "100%",
+                fontFamily: "var(--font-heading)",
+                fontWeight: 600,
+                fontSize: "0.9rem",
+                padding: "0.7rem",
+                borderRadius: "9999px",
+                background: "transparent",
+                border: `1.5px solid ${isDark ? "rgba(255,255,255,0.3)" : "var(--gray-300)"}`,
+                color: isDark ? "rgba(255,255,255,0.9)" : "var(--gray-700)",
+                cursor: "pointer",
+                transition: "background 0.2s, border-color 0.2s",
+              }}
+            >
+              Login
+            </button>
+          </li>
+          <li style={{ padding: `0.4rem clamp(1rem, 3vw, 2.5rem) 0.9rem` }}>
+            <button
+              onClick={handleApplyClick}
               style={{ width: "100%", fontFamily: "var(--font-heading)", fontWeight: 600, fontSize: "0.9rem", padding: "0.75rem", borderRadius: "9999px", background: "var(--ff-500)", color: "#fff", border: "none", cursor: "pointer" }}
             >
               Apply Now →

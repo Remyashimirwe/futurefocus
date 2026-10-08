@@ -16,15 +16,36 @@ const inter = Inter({
   display: "swap",
 });
 
+const LOGO = "/future%20focus.jpeg";
+
 export const metadata: Metadata = {
   title: "Future Focus Academy — Discover Your Future",
   description:
     "Future Focus Academy empowers youth with the skills, knowledge, and confidence to build a brighter future through education, technology, and innovation.",
   keywords: ["education", "youth", "technology", "skills", "innovation", "Future Focus Academy"],
+  icons: {
+    icon: LOGO,
+    apple: LOGO,
+  },
   openGraph: {
     title: "Future Focus Academy",
     description: "Empowering youth through education, technology, and innovation.",
     type: "website",
+    siteName: "Future Focus Academy",
+    images: [
+      {
+        url: LOGO,
+        width: 510,
+        height: 510,
+        alt: "Future Focus Academy logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Future Focus Academy",
+    description: "Empowering youth through education, technology, and innovation.",
+    images: [LOGO],
   },
 };
 

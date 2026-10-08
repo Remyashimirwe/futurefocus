@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useInView, useReducedMotion } from "../hooks";
 
 // ─── Reveal wrapper ───────────────────────────────────────────────
@@ -105,43 +106,84 @@ function TiltCard({ children, className = "", style }: { children: React.ReactNo
 }
 
 // ─── Programs Section ─────────────────────────────────────────────
-const PROGRAMS = [
+export const PROGRAMS = [
   {
-    icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></svg>),
     title: "Digital Skills", desc: "Coding, design, and digital literacy for the modern world.", tag: "Technology",
     img: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=900&q=80&auto=format&fit=crop",
   },
   {
-    icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" /></svg>),
     title: "Career Readiness", desc: "CV writing, interview skills, and professional networking.", tag: "Career",
     img: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=900&q=80&auto=format&fit=crop",
   },
   {
-    icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" /></svg>),
     title: "Global Perspectives", desc: "Expand your worldview with international learning and exchange.", tag: "Global",
     img: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=900&q=80&auto=format&fit=crop",
   },
   {
-    icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>),
     title: "Creative Arts & Media", desc: "Video, storytelling, design, and creative expression.", tag: "Creative",
     img: "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=900&q=80&auto=format&fit=crop",
   },
   {
-    icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M16 18l6-6-6-6" /><path d="M8 6l-6 6 6 6" /></svg>),
     title: "Coding & Software Development", desc: "Learn web development, Python, and problem-solving by building real apps from scratch.", tag: "Technology",
     img: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=900&q=80&auto=format&fit=crop",
   },
   {
-    icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>),
     title: "Music Production", desc: "Compose, record, and mix your own tracks with modern production tools and studio techniques.", tag: "Music",
     img: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=900&q=80&auto=format&fit=crop",
   },
   {
-    icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" /></svg>),
     title: "Photography", desc: "Master camera fundamentals, lighting, and editing to tell powerful visual stories.", tag: "Creative",
     img: "https://images.unsplash.com/photo-1502982720700-bfff97f2ecac?w=900&q=80&auto=format&fit=crop",
   },
 ];
+
+function ProgramCard({ p }: { p: (typeof PROGRAMS)[number] }) {
+  return (
+    <Link href="/apply" className="block h-full" style={{ textDecoration: "none" }}>
+      <TiltCard className="relative group bg-white rounded-2xl p-7 border h-full cursor-pointer" style={{ borderColor: "var(--gray-100)", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
+        {/* Photo */}
+        <div
+          className="relative rounded-xl overflow-hidden mb-5"
+          style={{ height: 148, background: "var(--ff-100)", zIndex: 2 }}
+        >
+          <Image
+            src={p.img}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
+            style={{ objectFit: "cover" }}
+            className="transition-transform duration-500 group-hover:scale-105"
+          />
+        </div>
+        {/* Tag */}
+        <span className="text-[11px] font-semibold tracking-widest uppercase mb-2 block" style={{ color: "var(--ff-400)", fontFamily: "var(--font-heading)" }}>
+          {p.tag}
+        </span>
+        {/* Title */}
+        <h3 className="font-bold text-lg mb-2 transition-colors duration-200 group-hover:text-[var(--ff-700)]" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-900)" }}>
+          {p.title}
+        </h3>
+        {/* Desc */}
+        <p className="text-sm leading-relaxed mb-5" style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)" }}>
+          {p.desc}
+        </p>
+        {/* Apply now */}
+        <div className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: "var(--ff-500)", fontFamily: "var(--font-heading)" }}>
+          Apply Now
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform duration-200" aria-hidden="true">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </div>
+        {/* Bottom border reveal on hover */}
+        <div
+          className="absolute bottom-0 left-6 right-6 h-px rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-400"
+          style={{ background: "var(--ff-400)" }}
+          aria-hidden="true"
+        />
+      </TiltCard>
+    </Link>
+  );
+}
 
 export function ProgramsSection() {
   return (
@@ -162,56 +204,48 @@ export function ProgramsSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {PROGRAMS.map((p, i) => (
             <Reveal key={i} delay={i * 0.07}>
-              <TiltCard className="relative group bg-white rounded-2xl p-7 border h-full cursor-pointer" style={{ borderColor: "var(--gray-100)", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-                {/* Photo + icon badge */}
-                <div
-                  className="relative rounded-xl overflow-hidden mb-5"
-                  style={{ height: 148, background: "var(--ff-100)", zIndex: 2 }}
-                >
-                  <Image
-                    src={p.img}
-                    alt=""
-                    fill
-                    sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
-                    style={{ objectFit: "cover" }}
-                    className="transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div
-                    className="absolute top-3 left-3 inline-flex items-center justify-center w-10 h-10 rounded-lg"
-                    style={{ background: "rgba(255,255,255,0.94)", color: "var(--ff-700)" }}
-                  >
-                    {p.icon}
-                  </div>
-                </div>
-                {/* Tag */}
-                <span className="text-[11px] font-semibold tracking-widest uppercase mb-2 block" style={{ color: "var(--ff-400)", fontFamily: "var(--font-heading)" }}>
-                  {p.tag}
-                </span>
-                {/* Title */}
-                <h3 className="font-bold text-lg mb-2 transition-colors duration-200 group-hover:text-[var(--ff-700)]" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-900)" }}>
-                  {p.title}
-                </h3>
-                {/* Desc */}
-                <p className="text-sm leading-relaxed mb-5" style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)" }}>
-                  {p.desc}
-                </p>
-                {/* Learn more */}
-                <div className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: "var(--ff-500)", fontFamily: "var(--font-heading)" }}>
-                  Learn more
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform duration-200" aria-hidden="true">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </div>
-                {/* Bottom border reveal on hover */}
-                <div
-                  className="absolute bottom-0 left-6 right-6 h-px rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-400"
-                  style={{ background: "var(--ff-400)" }}
-                  aria-hidden="true"
-                />
-              </TiltCard>
+              <ProgramCard p={p} />
             </Reveal>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Featured Programs (home page preview) ────────────────────────
+export function FeaturedProgramsSection() {
+  return (
+    <section id="programs" className="ff-section" style={{ background: "var(--ff-50)" }} data-nav-theme="light">
+      <div className="ff-container">
+        <Reveal className="max-w-xl mb-14">
+          <span className="text-xs font-semibold tracking-[0.16em] uppercase mb-3 block" style={{ color: "var(--ff-500)", fontFamily: "var(--font-heading)" }}>
+            What We Offer
+          </span>
+          <h2 className="text-4xl font-extrabold mb-4" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-950)" }}>
+            Our Programs
+          </h2>
+          <p style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)", lineHeight: 1.7 }}>
+            Practical, engaging programs designed to equip young people with the skills they need to thrive in a rapidly changing world.
+          </p>
+        </Reveal>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {PROGRAMS.slice(0, 6).map((p, i) => (
+            <Reveal key={i} delay={i * 0.07}>
+              <ProgramCard p={p} />
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal delay={0.15} className="mt-12 flex justify-center">
+          <Link href="/programs" className="btn-brand group">
+            View All Programs
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-0.5 transition-transform duration-200" aria-hidden="true">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </Reveal>
       </div>
     </section>
   );
@@ -226,64 +260,133 @@ const REASONS = [
 ];
 
 const STATS = [
-  { stat: 500, suffix: "+", label: "Students Enrolled",  color: "var(--ff-800)" },
-  { stat: 12,  suffix: "+", label: "Programs Available", color: "var(--ff-700)" },
-  { stat: 95,  suffix: "%", label: "Satisfaction Rate",  color: "var(--ff-500)" },
-  { stat: 30,  suffix: "+", label: "Expert Mentors",     color: "var(--ff-400)" },
+  { stat: 500, suffix: "+", label: "Students Enrolled" },
+  { stat: 12,  suffix: "+", label: "Programs Available" },
+  { stat: 95,  suffix: "%", label: "Satisfaction Rate" },
+  { stat: 30,  suffix: "+", label: "Expert Mentors" },
 ];
+
+const STAT_ACCENTS = ["var(--ff-200)", "var(--ff-300)", "#ffffff", "var(--ff-400)"];
 
 export function WhyChooseUsSection() {
   return (
-    <section id="why-choose-us" className="ff-section bg-white" data-nav-theme="light">
-      <div className="ff-container">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Left */}
-          <div>
-            <Reveal>
-              <span className="text-xs font-semibold tracking-[0.16em] uppercase mb-3 block" style={{ color: "var(--ff-500)", fontFamily: "var(--font-heading)" }}>Why Future Focus Academy</span>
-              <h2 className="text-4xl font-extrabold mb-6 leading-tight" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-950)" }}>
-                Built for the Next Generation
-              </h2>
-              <p className="mb-10 text-lg" style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)", lineHeight: 1.7 }}>
-                Future Focus Academy is more than a program—it&apos;s a movement. We believe every young person deserves the tools, guidance, and community to shape their own future.
-              </p>
-            </Reveal>
-            <div className="flex flex-col gap-7">
-              {REASONS.map((r, i) => (
-                <Reveal key={r.num} delay={i * 0.1}>
-                  <div className="flex gap-5 group">
-                    <span className="text-2xl font-extrabold shrink-0 leading-none mt-0.5 transition-colors duration-300 group-hover:text-[var(--ff-400)]" style={{ color: "var(--ff-200)", fontFamily: "var(--font-heading)" }}>
-                      {r.num}
-                    </span>
-                    <div>
-                      <h3 className="font-bold text-base mb-1" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-900)" }}>{r.title}</h3>
-                      <p className="text-sm leading-relaxed" style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)" }}>{r.desc}</p>
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </div>
+    <section
+      id="why-choose-us"
+      className="ff-section relative overflow-hidden"
+      style={{ background: "linear-gradient(180deg, var(--white) 0%, var(--ff-50) 55%, var(--white) 100%)" }}
+      data-nav-theme="light"
+    >
+      {/* Ambient glow blobs */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div style={{ position: "absolute", top: "-10rem", right: "-8rem", width: "26rem", height: "26rem", borderRadius: "50%", background: "radial-gradient(circle, rgba(0,167,157,0.15) 0%, transparent 70%)" }} />
+        <div style={{ position: "absolute", bottom: "-12rem", left: "-10rem", width: "30rem", height: "30rem", borderRadius: "50%", background: "radial-gradient(circle, rgba(24,186,175,0.13) 0%, transparent 70%)" }} />
+      </div>
 
-          {/* Right: stat cards */}
-          <div className="grid grid-cols-2 gap-5">
-            {STATS.map((item, i) => (
-              <Reveal key={item.label} delay={i * 0.1}>
-                <div
-                  className="rounded-2xl p-7 flex flex-col justify-between group hover:shadow-lg transition-shadow duration-300"
-                  style={{ background: "var(--ff-50)", border: "1px solid var(--ff-100)", minHeight: 140 }}
+      <div className="ff-container relative" style={{ zIndex: 1 }}>
+        {/* Header */}
+        <Reveal className="max-w-2xl mx-auto text-center mb-14">
+          <span
+            className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.16em] uppercase px-4 py-2 rounded-full mb-5"
+            style={{ background: "var(--ff-100)", color: "var(--ff-700)", fontFamily: "var(--font-heading)" }}
+          >
+            <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--ff-500)" }} />
+            Why Future Focus Academy
+          </span>
+          <h2 className="text-4xl sm:text-5xl font-extrabold mb-5 leading-[1.08]" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-950)" }}>
+            Built for the <span style={{ color: "var(--ff-500)" }}>Next Generation</span>
+          </h2>
+          <p className="text-lg" style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)", lineHeight: 1.7 }}>
+            Future Focus Academy is more than a program—it&apos;s a movement. We believe every young person deserves the tools, guidance, and community to shape their own future.
+          </p>
+        </Reveal>
+
+        {/* Reason cards */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-14">
+          {REASONS.map((r, i) => (
+            <Reveal key={r.num} delay={i * 0.08} className="h-full">
+              <div
+                className="group h-full rounded-2xl p-6 relative overflow-hidden border border-[var(--gray-100)] hover:border-[var(--ff-300)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_40px_-18px_rgba(0,167,157,0.45)]"
+                style={{ background: "#fff" }}
+              >
+                {/* Gradient accent line revealed on hover */}
+                <span
+                  aria-hidden="true"
+                  className="absolute top-0 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"
+                  style={{ background: "linear-gradient(90deg, var(--ff-500), var(--ff-300))" }}
+                />
+                <span
+                  className="inline-flex items-center justify-center w-11 h-11 rounded-xl text-sm font-extrabold mb-5 transition-transform duration-300 group-hover:-translate-y-1"
+                  style={{
+                    background: "linear-gradient(135deg, var(--ff-500), var(--ff-700))",
+                    color: "#fff",
+                    fontFamily: "var(--font-heading)",
+                    boxShadow: "0 10px 20px -10px rgba(0,167,157,0.8)",
+                  }}
                 >
-                  <span className="text-4xl font-extrabold leading-none mb-3 tabular-nums" style={{ color: item.color, fontFamily: "var(--font-heading)" }}>
+                  {r.num}
+                </span>
+                <h3 className="font-bold text-base mb-2" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-900)" }}>
+                  {r.title}
+                </h3>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)" }}>
+                  {r.desc}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        {/* Stats band */}
+        <Reveal delay={0.1}>
+          <div
+            className="relative rounded-3xl overflow-hidden"
+            style={{
+              background: "linear-gradient(135deg, #003d38 0%, #005850 55%, #00706b 100%)",
+              boxShadow: "0 28px 60px -28px rgba(0,61,56,0.6)",
+            }}
+          >
+            {/* Glow accents */}
+            <div aria-hidden="true" style={{ position: "absolute", top: "-6rem", right: "-4rem", width: "18rem", height: "18rem", borderRadius: "50%", background: "radial-gradient(circle, rgba(79,205,196,0.4) 0%, transparent 70%)" }} />
+            <div aria-hidden="true" style={{ position: "absolute", bottom: "-7rem", left: "-5rem", width: "20rem", height: "20rem", borderRadius: "50%", background: "radial-gradient(circle, rgba(24,186,175,0.28) 0%, transparent 70%)" }} />
+
+            <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-4 p-5 sm:p-8">
+              {STATS.map((item, i) => (
+                <div
+                  key={item.label}
+                  className="rounded-2xl px-4 py-7 text-center flex flex-col items-center gap-2 bg-[rgba(255,255,255,0.07)] hover:bg-[rgba(255,255,255,0.14)] transition-colors duration-300"
+                  style={{ border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(6px)" }}
+                >
+                  <span
+                    className="text-4xl sm:text-5xl font-extrabold leading-none tabular-nums"
+                    style={{ color: STAT_ACCENTS[i], fontFamily: "var(--font-heading)" }}
+                  >
                     <Counter target={item.stat} suffix={item.suffix} />
                   </span>
-                  <span className="text-sm font-medium" style={{ color: "var(--gray-700)", fontFamily: "var(--font-body)" }}>
+                  <span className="text-xs sm:text-sm font-medium" style={{ color: "rgba(255,255,255,0.75)", fontFamily: "var(--font-body)" }}>
                     {item.label}
                   </span>
                 </div>
-              </Reveal>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </Reveal>
+
+        {/* CTA */}
+        <Reveal delay={0.15} className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link href="/apply" className="btn-brand group">
+            Start Your Journey
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-0.5 transition-transform duration-200" aria-hidden="true">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </Link>
+          <Link
+            href="/programs"
+            className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-white border-[1.5px] border-[var(--gray-100)] text-[var(--gray-700)] hover:-translate-y-0.5 hover:border-[var(--ff-400)] hover:text-[var(--ff-700)] transition-all duration-200"
+            style={{ fontFamily: "var(--font-heading)" }}
+          >
+            Explore Programs
+          </Link>
+        </Reveal>
       </div>
     </section>
   );
@@ -301,16 +404,18 @@ const GALLERY_ITEMS = [
 
 function Lightbox({
   index,
+  items,
   onClose,
   onPrev,
   onNext,
 }: {
   index: number;
+  items: typeof GALLERY_ITEMS;
   onClose: () => void;
   onPrev: () => void;
   onNext: () => void;
 }) {
-  const item = GALLERY_ITEMS[index];
+  const item = items[index];
   const reduced = useReducedMotion();
 
   // Keyboard + swipe
@@ -400,7 +505,7 @@ function Lightbox({
         {/* Counter */}
         <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.4)" }}>
           <span className="text-white/80 text-xs font-medium" style={{ fontFamily: "var(--font-heading)" }}>
-            {index + 1} / {GALLERY_ITEMS.length}
+            {index + 1} / {items.length}
           </span>
         </div>
       </div>
@@ -418,14 +523,24 @@ function Lightbox({
   );
 }
 
-export function GallerySection() {
+export function GallerySection({ uploads = [] }: { uploads?: { label: string; url: string }[] }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [hoveredIndex, setHoveredIndex]   = useState<number | null>(null);
 
+  const items: typeof GALLERY_ITEMS = [
+    ...uploads.map((u) => ({
+      label: u.label,
+      color: "from-[#005850] to-[#00a79d]",
+      size: "md" as const,
+      img: u.url,
+    })),
+    ...GALLERY_ITEMS,
+  ];
+
   const openLightbox  = (i: number) => setLightboxIndex(i);
   const closeLightbox = () => setLightboxIndex(null);
-  const prevItem = () => setLightboxIndex((i) => i !== null ? (i - 1 + GALLERY_ITEMS.length) % GALLERY_ITEMS.length : null);
-  const nextItem = () => setLightboxIndex((i) => i !== null ? (i + 1) % GALLERY_ITEMS.length : null);
+  const prevItem = () => setLightboxIndex((i) => i !== null ? (i - 1 + items.length) % items.length : null);
+  const nextItem = () => setLightboxIndex((i) => i !== null ? (i + 1) % items.length : null);
 
   return (
     <section id="gallery" className="ff-section" style={{ background: "var(--ff-50)" }} data-nav-theme="light">
@@ -439,7 +554,7 @@ export function GallerySection() {
         </Reveal>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {GALLERY_ITEMS.map((item, i) => (
+          {items.map((item, i) => (
             <Reveal key={i} delay={i * 0.07}>
               <button
                 onClick={() => openLightbox(i)}
@@ -494,6 +609,7 @@ export function GallerySection() {
       {lightboxIndex !== null && (
         <Lightbox
           index={lightboxIndex}
+          items={items}
           onClose={closeLightbox}
           onPrev={prevItem}
           onNext={nextItem}

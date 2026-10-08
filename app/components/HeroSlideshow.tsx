@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useReducedMotion } from "../hooks";
 
@@ -26,7 +27,7 @@ const COURSES: Course[] = [
     title: "Build Skills for Tomorrow",
     description: "Develop practical digital skills through hands-on learning and real-world projects.",
     cta: "Explore Course",
-    href: "#programs",
+    href: "/programs",
     gradient: "linear-gradient(135deg, #003d38 0%, #005850 35%, #00706b 65%, #00a79d 100%)",
     accent: "#18BAAF",
     bgPosition: "center center",
@@ -38,7 +39,7 @@ const COURSES: Course[] = [
     title: "Turn Ideas Into Code",
     description: "Learn programming fundamentals and transform ideas into useful digital solutions.",
     cta: "Explore Course",
-    href: "#programs",
+    href: "/programs",
     gradient: "linear-gradient(135deg, #001a2c 0%, #003050 35%, #005880 65%, #0084a8 100%)",
     accent: "#18BAAF",
     bgPosition: "center top",
@@ -50,7 +51,7 @@ const COURSES: Course[] = [
     title: "Create What Comes Next",
     description: "Explore creativity, technology, and innovation through practical projects.",
     cta: "Explore Course",
-    href: "#programs",
+    href: "/programs",
     gradient: "linear-gradient(135deg, #0d1a0d 0%, #1a3a1a 35%, #1a5a2e 65%, #1a7a42 100%)",
     accent: "#18BAAF",
     bgPosition: "center center",
@@ -341,9 +342,8 @@ export default function HeroSlideshow() {
 
                 {/* CTA */}
                 <motion.div variants={textLine}>
-                  <a
+                  <Link
                     href={course.href}
-                    onClick={(e) => { e.preventDefault(); document.getElementById("programs")?.scrollIntoView({ behavior: "smooth" }); }}
                     style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(0.75rem, 0.95vw, 0.85rem)", fontWeight: 600, color: "#fff", background: course.accent, padding: "0.5rem 1.2rem", borderRadius: "9999px", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.4rem", boxShadow: `0 4px 18px ${course.accent}55`, transition: "transform 0.2s, box-shadow 0.2s" }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 8px 26px ${course.accent}77`; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = ""; (e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 4px 18px ${course.accent}55`; }}
@@ -352,7 +352,7 @@ export default function HeroSlideshow() {
                   >
                     {course.cta}
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-                  </a>
+                  </Link>
                 </motion.div>
               </motion.div>
             </AnimatePresence>
