@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { PROGRAMS } from "./Sections";
+import { PROGRAMS } from "@/lib/program-data";
 
 // ─── Shared field styles (matches ContactSection conventions) ─────
 const inputStyle: React.CSSProperties = {
@@ -157,7 +157,7 @@ const DELIVERY_OPTIONS = [
 ];
 
 // ─── Main component ───────────────────────────────────────────────
-export default function ApplyForm() {
+export default function ApplyForm({ courses }: { courses?: string[] }) {
   const [delivery, setDelivery] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -357,7 +357,7 @@ export default function ApplyForm() {
                     id="course"
                     label="Course / Program"
                     placeholder="Select a course"
-                    options={PROGRAMS.map((p) => p.title)}
+                    options={courses ?? PROGRAMS.map((p) => p.title)}
                   />
                 </FormSection>
 

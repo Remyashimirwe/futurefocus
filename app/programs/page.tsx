@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { ProgramsSection } from "../components/Sections";
+import { getPublishedPrograms } from "@/lib/programs";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Programs — Future Focus Academy",
@@ -9,12 +12,14 @@ export const metadata: Metadata = {
     "Explore Future Focus Academy programs: digital skills, coding, career readiness, creative arts, music production, photography, and more.",
 };
 
-export default function ProgramsPage() {
+export default async function ProgramsPage() {
+  const programs = await getPublishedPrograms();
+
   return (
     <>
       <Navbar />
       <main style={{ paddingTop: "88px", background: "var(--ff-50)" }}>
-        <ProgramsSection />
+        <ProgramsSection programs={programs} />
       </main>
       <Footer />
     </>

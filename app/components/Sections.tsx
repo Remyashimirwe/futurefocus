@@ -106,38 +106,9 @@ function TiltCard({ children, className = "", style }: { children: React.ReactNo
 }
 
 // ─── Programs Section ─────────────────────────────────────────────
-export const PROGRAMS = [
-  {
-    title: "Digital Skills", desc: "Coding, design, and digital literacy for the modern world.", tag: "Technology",
-    img: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=900&q=80&auto=format&fit=crop",
-  },
-  {
-    title: "Career Readiness", desc: "CV writing, interview skills, and professional networking.", tag: "Career",
-    img: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=900&q=80&auto=format&fit=crop",
-  },
-  {
-    title: "Global Perspectives", desc: "Expand your worldview with international learning and exchange.", tag: "Global",
-    img: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=900&q=80&auto=format&fit=crop",
-  },
-  {
-    title: "Creative Arts & Media", desc: "Video, storytelling, design, and creative expression.", tag: "Creative",
-    img: "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=900&q=80&auto=format&fit=crop",
-  },
-  {
-    title: "Coding & Software Development", desc: "Learn web development, Python, and problem-solving by building real apps from scratch.", tag: "Technology",
-    img: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=900&q=80&auto=format&fit=crop",
-  },
-  {
-    title: "Music Production", desc: "Compose, record, and mix your own tracks with modern production tools and studio techniques.", tag: "Music",
-    img: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=900&q=80&auto=format&fit=crop",
-  },
-  {
-    title: "Photography", desc: "Master camera fundamentals, lighting, and editing to tell powerful visual stories.", tag: "Creative",
-    img: "https://images.unsplash.com/photo-1502982720700-bfff97f2ecac?w=900&q=80&auto=format&fit=crop",
-  },
-];
+import { PROGRAMS, type Program } from "@/lib/program-data";
 
-function ProgramCard({ p }: { p: (typeof PROGRAMS)[number] }) {
+function ProgramCard({ p }: { p: Program }) {
   return (
     <Link href="/apply" className="block h-full" style={{ textDecoration: "none" }}>
       <TiltCard className="relative group bg-white rounded-2xl p-7 border h-full cursor-pointer" style={{ borderColor: "var(--gray-100)", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
@@ -185,7 +156,7 @@ function ProgramCard({ p }: { p: (typeof PROGRAMS)[number] }) {
   );
 }
 
-export function ProgramsSection() {
+export function ProgramsSection({ programs = PROGRAMS }: { programs?: Program[] }) {
   return (
     <section id="programs" className="ff-section" style={{ background: "var(--ff-50)" }} data-nav-theme="light">
       <div className="ff-container">
@@ -202,7 +173,7 @@ export function ProgramsSection() {
         </Reveal>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {PROGRAMS.map((p, i) => (
+          {programs.map((p, i) => (
             <Reveal key={i} delay={i * 0.07}>
               <ProgramCard p={p} />
             </Reveal>
@@ -214,7 +185,7 @@ export function ProgramsSection() {
 }
 
 // ─── Featured Programs (home page preview) ────────────────────────
-export function FeaturedProgramsSection() {
+export function FeaturedProgramsSection({ programs = PROGRAMS }: { programs?: Program[] }) {
   return (
     <section id="programs" className="ff-section" style={{ background: "var(--ff-50)" }} data-nav-theme="light">
       <div className="ff-container">
@@ -231,7 +202,7 @@ export function FeaturedProgramsSection() {
         </Reveal>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {PROGRAMS.slice(0, 6).map((p, i) => (
+          {programs.slice(0, 6).map((p, i) => (
             <Reveal key={i} delay={i * 0.07}>
               <ProgramCard p={p} />
             </Reveal>
