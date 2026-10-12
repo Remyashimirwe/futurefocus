@@ -15,7 +15,7 @@ export default async function Home() {
       <PageLoader />
       <Navbar />
       <main>
-        <HeroSlideshow />
+        <HeroSlideshow programs={programs} />
         <FeaturedProgramsSection programs={programs} />
       </main>
       <Footer />

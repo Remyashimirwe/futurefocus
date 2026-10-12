@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useReducedMotion } from "../hooks";
+import { type Program } from "@/lib/program-data";
 
 // ─── Course data ───────────────────────────────────────────────────
 interface Course {
@@ -20,7 +21,7 @@ interface Course {
   image: string;
 }
 
-const COURSES: Course[] = [
+const FALLBACK_SLIDES: Course[] = [
   {
     id: 0,
     category: "Digital Skills",
@@ -60,6 +61,41 @@ const COURSES: Course[] = [
 ];
 
 const AUTOPLAY_MS = 10000;
+
+const ACCENT = "#18BAAF";
+
+// Brand-consistent gradients cycled per program, so a slide still looks right
+// when the admin only supplies a title.
+const SLIDE_GRADIENTS = [
+  "linear-gradient(135deg, #003d38 0%, #005850 35%, #00706b 65%, #00a79d 100%)",
+  "linear-gradient(135deg, #001a2c 0%, #003050 35%, #005880 65%, #0084a8 100%)",
+  "linear-gradient(135deg, #0d1a0d 0%, #1a3a1a 35%, #1a5a2e 65%, #1a7a42 100%)",
+  "linear-gradient(135deg, #2b1a00 0%, #503000 35%, #7a5a1a 65%, #a87a2e 100%)",
+  "linear-gradient(135deg, #1a0d2b 0%, #301a50 35%, #502e7a 65%, #7a42a8 100%)",
+];
+
+/** Stable hash → same program always gets the same gradient. */
+function gradientFor(seed: string): string {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  return SLIDE_GRADIENTS[hash % SLIDE_GRADIENTS.length];
+}
+
+/** Turns published programs (same source as the program cards) into hero slides. */
+function toSlides(programs: Program[]): Course[] {
+  return programs.map((program, index) => ({
+    id: index,
+    category: program.tag.trim() || "Program",
+    title: program.title,
+    description: program.desc,
+    cta: "Explore Course",
+    href: "/programs",
+    gradient: gradientFor(program.title || String(index)),
+    accent: ACCENT,
+    bgPosition: "center center",
+    image: program.img.trim(),
+  }));
+}
 
 // ─── Slide panel (used for all three visible panels) ───────────────
 function SlidePanel({
@@ -105,7 +141,7 @@ function SlidePanel({
           style={{
             position: "absolute",
             inset: 0,
-            background: course.gradient,
+            backgroundImage: course.gradient,
             backgroundSize: "cover",
             backgroundPosition: course.bgPosition,
             // Side panels: blurred + darkened
@@ -114,14 +150,16 @@ function SlidePanel({
           }}
         >
           {/* Photo (gradient stays behind as fallback) */}
-          <Image
-            src={course.image}
-            alt=""
-            fill
-            sizes="(max-width: 640px) 100vw, 90vw"
-            priority={isCenter}
-            style={{ objectFit: "cover", objectPosition: course.bgPosition }}
-          />
+          {course.image ? (
+            <Image
+              src={course.image}
+              alt=""
+              fill
+              sizes="(max-width: 640px) 100vw, 90vw"
+              priority={isCenter}
+              style={{ objectFit: "cover", objectPosition: course.bgPosition }}
+            />
+          ) : null}
           {/* Dot texture */}
           <svg aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: isCenter ? 0.06 : 0.03 }} preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 400">
             <defs><pattern id={`dot-${course.id}-${role}`} x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="white" /></pattern></defs>
@@ -193,7 +231,12 @@ function SlidePanel({
 }
 
 // ─── Main component ────────────────────────────────────────────────
-export default function HeroSlideshow() {
+export default function HeroSlideshow({ programs = [] }: { programs?: Program[] }) {
+  // Published programs drive the slides — the same list the program cards use.
+  // The built-in set keeps the hero populated while the database is empty.
+  const slides = programs.length > 0 ? toSlides(programs) : FALLBACK_SLIDES;
+  const slideCount = slides.length;
+
   const [current, setCurrent] = useState(0);
   const [paused, setPaused]   = useState(false);
   const [progress, setProgress] = useState(0);
@@ -204,9 +247,9 @@ export default function HeroSlideshow() {
   const touchStartX = useRef(0);
 
   const goTo = useCallback((idx: number) => {
-    setCurrent(((idx % COURSES.length) + COURSES.length) % COURSES.length);
+    setCurrent(((idx % slideCount) + slideCount) % slideCount);
     setProgress(0);
-  }, []);
+  }, [slideCount]);
   const goNext = useCallback(() => goTo(current + 1), [current, goTo]);
   const goPrev = useCallback(() => goTo(current - 1), [current, goTo]);
 
@@ -238,9 +281,10 @@ export default function HeroSlideshow() {
     return () => window.removeEventListener("keydown", fn);
   }, [goNext, goPrev]);
 
-  const course     = COURSES[current];
-  const prevCourse = COURSES[(current - 1 + COURSES.length) % COURSES.length];
-  const nextCourse = COURSES[(current + 1) % COURSES.length];
+  const index      = ((current % slideCount) + slideCount) % slideCount;
+  const course     = slides[index];
+  const prevCourse = slides[(index - 1 + slideCount) % slideCount];
+  const nextCourse = slides[(index + 1) % slideCount];
 
   // Text reveal variants
   const textWrap = {
@@ -319,7 +363,7 @@ export default function HeroSlideshow() {
           >
             <AnimatePresence mode="wait">
               <motion.div
-                key={current}
+                key={index}
                 variants={textWrap}
                 initial="hidden"
                 animate="show"
@@ -392,8 +436,8 @@ export default function HeroSlideshow() {
           aria-label="Course slides"
           style={{ flex: 1, display: "flex", alignItems: "center", gap: "clamp(0.3rem, 0.7vw, 0.55rem)" }}
         >
-          {COURSES.map((c, i) => {
-            const isActive = i === current;
+          {slides.map((c, i) => {
+            const isActive = i === index;
             return (
               <button
                 key={c.id}
@@ -420,7 +464,7 @@ export default function HeroSlideshow() {
 
         {/* Counter */}
         <span style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(0.68rem, 0.9vw, 0.78rem)", fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: "0.08em", flexShrink: 0 } as React.CSSProperties} aria-live="polite">
-          {String(current + 1).padStart(2, "0")} / {String(COURSES.length).padStart(2, "0")}
+          {String(index + 1).padStart(2, "0")} / {String(slideCount).padStart(2, "0")}
         </span>
 
         {/* Pause/Play */}

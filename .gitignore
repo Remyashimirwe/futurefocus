@@ -23,6 +23,9 @@
 # misc
 .DS_Store
 *.pem
+# …except the Supabase root CA, which lib/db.ts needs to verify TLS.
+# This is a public certificate, not a secret.
+!certs/supabase-pooler-root-ca.pem
 
 # debug
 npm-debug.log*

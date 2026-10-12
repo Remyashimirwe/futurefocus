@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+/// Bootstrap admin account — first login creates a row from ADMIN_EMAIL/ADMIN_PASSWORD.
+model admin_users {
+  id            Int     @id @default(autoincrement())
+  email         String  @unique
+  name          String?
+  password_hash String
+
+  @@map("admin_users")
+}
+
+/// Short-lived 6-digit sign-in codes sent by email (lib/admin.ts).
+model auth_codes {
+  id         Int      @id @default(autoincrement())
+  email      String
+  code       String
+  expires_at DateTime
+  used       Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  @@index([email, used])
+  @@map("auth_codes")
+}
+
+/// Programs shown on the site; only rows with published = true are public.
+model programs {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String  @default("")
+  tag         String  @default("")
+  img         String  @default("")
+  published   Boolean @default(false)
+  sort_order  Int     @default(0)
+
+  @@index([published, sort_order])
+  @@map("programs")
+}
+
+/// Gallery photos, stored on Cloudinary (public_id blank when imported by URL).
+model gallery_images {
+  id         Int      @id @default(autoincrement())
+  label      String
+  public_id  String   @default("")
+  url        String
+  secure_url String
+  created_at DateTime @default(now())
+
+  @@map("gallery_images")
+}
+
+/// Submissions from the public Apply form.
+model applications {
+  id             Int      @id @default(autoincrement())
+  first_name     String
+  last_name      String
+  email          String
+  phone          String?
+  date_of_birth  String?
+  gender         String?
+  street_address String?
+  city           String?
+  district       String?
+  province       String?
+  country        String?
+  course         String?
+  schedule       String?
+  delivery_mode  String?
+  status         String   @default("new")
+  created_at     DateTime @default(now())
+
+  @@index([status])
+  @@map("applications")
+}

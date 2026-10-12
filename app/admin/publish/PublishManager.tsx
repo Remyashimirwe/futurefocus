@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import Modal from "@/app/components/Modal";
 
 type Program = {
   id: number;
@@ -21,6 +22,10 @@ type ProgramForm = {
 };
 
 const EMPTY_FORM: ProgramForm = { title: "", tag: "", description: "", img: "" };
+
+/** Only show the thumbnail once the URL looks complete, so typing doesn't
+ *  fire a broken image request on every keystroke. */
+const looksLikeUrl = (v: string) => /^https?:\/\/\S+\.\S+/i.test(v.trim());
 
 const cardStyle: React.CSSProperties = {
   background: "var(--white)",
@@ -88,14 +93,110 @@ function Field({
   );
 }
 
+/**
+ * Upload from the device (straight to Cloudinary), or paste a URL. Either way
+ * the resulting address lands in the form's `img` field.
+ */
+function ImagePicker({
+  idPrefix,
+  value,
+  onChange,
+  onUpload,
+  uploading,
+}: {
+  idPrefix: string;
+  value: string;
+  onChange: (v: string) => void;
+  onUpload: (file: File) => void;
+  uploading: boolean;
+}) {
+  const [fileName, setFileName] = useState("");
+
+  return (
+    <div className="space-y-3">
+      <span className="block text-xs font-semibold" style={labelStyle}>
+        Image
+      </span>
+
+      <div className="flex items-stretch gap-3">
+        <label
+          htmlFor={`${idPrefix}-file`}
+          className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl py-5 px-4 text-center cursor-pointer transition-colors duration-200"
+          style={{ border: "1.5px dashed var(--gray-300)", background: "var(--ff-50)", color: "var(--gray-500)" }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          <span className="text-xs font-semibold" style={{ fontFamily: "var(--font-heading)" }}>
+            {uploading ? "Uploading…" : fileName || "Upload from your device (max 10MB)"}
+          </span>
+          <input
+            id={`${idPrefix}-file`}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            disabled={uploading}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              // Reset so picking the same file twice still fires a change event.
+              e.target.value = "";
+              if (!file) return;
+              setFileName(file.name);
+              onUpload(file);
+            }}
+          />
+        </label>
+
+        {looksLikeUrl(value) && (
+          <div
+            className="relative h-[58px] w-[58px] shrink-0 overflow-hidden rounded-xl"
+            style={{ border: "1px solid var(--gray-100)", background: "var(--ff-50)" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary URLs bypass next/image host rules */}
+            <img src={value} alt="" className="h-full w-full object-cover" />
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setFileName("");
+              }}
+              aria-label="Remove image"
+              className="absolute right-1 top-1 rounded-full p-1 cursor-pointer"
+              style={{ background: "rgba(12,13,13,0.6)", color: "#fff" }}
+            >
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+
+      <Field
+        id={`${idPrefix}-img`}
+        label="…or paste an image URL"
+        value={value}
+        onChange={onChange}
+        placeholder="https://example.com/photo.jpg"
+      />
+    </div>
+  );
+}
+
 function ProgramFormFields({
   form,
   setForm,
   idPrefix,
+  onUpload,
+  uploading = false,
 }: {
   form: ProgramForm;
   setForm: (f: ProgramForm) => void;
   idPrefix: string;
+  onUpload: (file: File) => void;
+  uploading?: boolean;
 }) {
   return (
     <>
@@ -124,12 +225,12 @@ function ProgramFormFields({
         placeholder="Short summary shown on the program card."
         textarea
       />
-      <Field
-        id={`${idPrefix}-img`}
-        label="Image URL"
+      <ImagePicker
+        idPrefix={idPrefix}
         value={form.img}
         onChange={(v) => setForm({ ...form, img: v })}
-        placeholder="https://example.com/photo.jpg"
+        onUpload={onUpload}
+        uploading={uploading}
       />
     </>
   );
@@ -142,8 +243,11 @@ export default function PublishManager({ initial }: { initial: Program[] }) {
   const [createPublish, setCreatePublish] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<ProgramForm>(EMPTY_FORM);
+  const [deleteTarget, setDeleteTarget] = useState<Program | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
+
+  const editingProgram = programs.find((p) => p.id === editingId) ?? null;
 
   const createProgram = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -179,6 +283,36 @@ export default function PublishManager({ initial }: { initial: Program[] }) {
     } finally {
       setBusy(null);
     }
+  };
+
+  /** Sends a chosen file to Cloudinary, then drops the URL into the form. */
+  const uploadImage = (file: File, apply: (url: string) => void) => {
+    if (!file.type.startsWith("image/")) {
+      setMessage({ type: "error", text: "Only image files are allowed." });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setMessage({ type: "error", text: "Image must be under 10MB." });
+      return;
+    }
+    setBusy("upload");
+    setMessage(null);
+    (async () => {
+      try {
+        const body = new FormData();
+        body.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Upload failed.");
+
+        apply(String(data.url ?? ""));
+        setMessage({ type: "ok", text: "Image uploaded." });
+      } catch (err) {
+        setMessage({ type: "error", text: err instanceof Error ? err.message : "Upload failed." });
+      } finally {
+        setBusy(null);
+      }
+    })();
   };
 
   const startEdit = (program: Program) => {
@@ -246,17 +380,20 @@ export default function PublishManager({ initial }: { initial: Program[] }) {
     }
   };
 
-  const removeProgram = async (program: Program) => {
-    if (!window.confirm(`Delete "${program.title}"? This cannot be undone.`)) return;
-    setBusy(`delete:${program.id}`);
+  /** Runs once the delete dialog is confirmed. */
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setBusy(`delete:${deleteTarget.id}`);
     setMessage(null);
     try {
-      const res = await fetch(`/api/programs/${program.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/programs/${deleteTarget.id}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Delete failed.");
 
-      setPrograms((current) => current.filter((p) => p.id !== program.id));
-      setMessage({ type: "ok", text: "Program deleted." });
+      const removed = deleteTarget.title;
+      setPrograms((current) => current.filter((p) => p.id !== deleteTarget.id));
+      setDeleteTarget(null);
+      setMessage({ type: "ok", text: `"${removed}" was deleted.` });
     } catch (err) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Delete failed." });
     } finally {
@@ -280,10 +417,13 @@ export default function PublishManager({ initial }: { initial: Program[] }) {
         </div>
         <button
           type="button"
-          onClick={() => { setShowForm((v) => !v); setMessage(null); }}
+          onClick={() => { setShowForm(true); setMessage(null); }}
           className="btn-brand"
         >
-          {showForm ? "Cancel" : "New program"}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          New program
         </button>
       </div>
 
@@ -301,12 +441,26 @@ export default function PublishManager({ initial }: { initial: Program[] }) {
         </p>
       )}
 
-      {showForm && (
-        <form onSubmit={createProgram} className="rounded-2xl p-5 space-y-4" style={cardStyle}>
-          <h3 className="text-sm font-extrabold" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-950)" }}>
-            New program
-          </h3>
-          <ProgramFormFields form={createForm} setForm={setCreateForm} idPrefix="new" />
+      <Modal open={showForm} onClose={() => setShowForm(false)} title="New program">
+        <form onSubmit={createProgram} className="space-y-4">
+          <ProgramFormFields
+            form={createForm}
+            setForm={setCreateForm}
+            idPrefix="new"
+            uploading={busy === "upload"}
+            onUpload={(file) =>
+              uploadImage(file, (url) => setCreateForm((f) => ({ ...f, img: url })))
+            }
+          />
+          {message?.type === "error" && (
+            <p
+              className="text-sm rounded-xl px-4 py-2.5"
+              role="alert"
+              style={{ background: "#fff1f1", border: "1px solid #ffd7d7", color: "#b42318" }}
+            >
+              {message.text}
+            </p>
+          )}
           <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: "var(--gray-700)", fontFamily: "var(--font-heading)" }}>
             <input
               type="checkbox"
@@ -331,7 +485,101 @@ export default function PublishManager({ initial }: { initial: Program[] }) {
             </button>
           </div>
         </form>
-      )}
+      </Modal>
+
+      {/* ── Edit (same popup as New program, prefilled) ── */}
+      <Modal
+        open={editingId !== null}
+        onClose={() => setEditingId(null)}
+        title={editingProgram ? `Edit "${editingProgram.title}"` : "Edit program"}
+      >
+        <form onSubmit={saveEdit} className="space-y-4">
+          <ProgramFormFields
+            form={editForm}
+            setForm={setEditForm}
+            idPrefix="edit"
+            uploading={busy === "upload"}
+            onUpload={(file) =>
+              uploadImage(file, (url) => setEditForm((f) => ({ ...f, img: url })))
+            }
+          />
+          {message?.type === "error" && (
+            <p
+              className="text-sm rounded-xl px-4 py-2.5"
+              role="alert"
+              style={{ background: "#fff1f1", border: "1px solid #ffd7d7", color: "#b42318" }}
+            >
+              {message.text}
+            </p>
+          )}
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={busy === `edit:${editingId}`}
+              className="btn-brand disabled:opacity-70"
+            >
+              {busy === `edit:${editingId}` ? "Saving…" : "Save changes"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditingId(null)}
+              className="text-sm font-semibold px-5 py-2.5 rounded-full cursor-pointer"
+              style={{ fontFamily: "var(--font-heading)", background: "transparent", border: "1.5px solid var(--gray-100)", color: "var(--gray-700)" }}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ── Delete confirmation ── */}
+      <Modal
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete program"
+        width="max-w-md"
+      >
+        <p className="text-sm leading-relaxed" style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)" }}>
+          <strong style={{ color: "var(--gray-900)" }}>{deleteTarget?.title}</strong> will be
+          permanently removed from the site, including the home page and the programs page.
+          This cannot be undone.
+        </p>
+
+        {message?.type === "error" && (
+          <p
+            className="mt-4 text-sm rounded-xl px-4 py-2.5"
+            role="alert"
+            style={{ background: "#fff1f1", border: "1px solid #ffd7d7", color: "#b42318" }}
+          >
+            {message.text}
+          </p>
+        )}
+
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setDeleteTarget(null)}
+            className="text-sm font-semibold px-5 py-2.5 rounded-full cursor-pointer"
+            style={{ fontFamily: "var(--font-heading)", background: "transparent", border: "1.5px solid var(--gray-100)", color: "var(--gray-700)" }}
+          >
+            Keep it
+          </button>
+          <button
+            type="button"
+            onClick={confirmDelete}
+            disabled={busy === `delete:${deleteTarget?.id}`}
+            className="inline-flex items-center gap-1.5 text-sm font-bold px-5 py-2.5 rounded-full cursor-pointer transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60"
+            style={{ fontFamily: "var(--font-heading)", background: "#b42318", border: "1px solid #b42318", color: "#fff" }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M3 6h18" />
+              <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+            </svg>
+            {busy === `delete:${deleteTarget?.id}` ? "Deleting…" : "Delete program"}
+          </button>
+        </div>
+      </Modal>
 
       <div>
         <h3 className="text-sm font-extrabold mb-3" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-950)" }}>
@@ -347,32 +595,9 @@ export default function PublishManager({ initial }: { initial: Program[] }) {
         ) : (
           <div className="space-y-3">
             {programs.map((program) => {
-              const isEditing = editingId === program.id;
               return (
                 <div key={program.id} className="rounded-2xl p-4 sm:p-5" style={cardStyle}>
-                  {isEditing ? (
-                    <form onSubmit={saveEdit} className="space-y-4">
-                      <ProgramFormFields form={editForm} setForm={setEditForm} idPrefix={`edit-${program.id}`} />
-                      <div className="flex gap-3">
-                        <button
-                          type="submit"
-                          disabled={busy === `edit:${program.id}`}
-                          className="btn-brand disabled:opacity-70"
-                        >
-                          {busy === `edit:${program.id}` ? "Saving…" : "Save changes"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingId(null)}
-                          className="text-sm font-semibold px-5 py-2.5 rounded-full cursor-pointer"
-                          style={{ fontFamily: "var(--font-heading)", background: "transparent", border: "1.5px solid var(--gray-100)", color: "var(--gray-700)" }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                       <div
                         className="relative h-16 w-16 shrink-0 rounded-xl overflow-hidden flex items-center justify-center"
                         style={{ background: "var(--ff-50)", border: "1px solid var(--gray-100)" }}
@@ -423,36 +648,55 @@ export default function PublishManager({ initial }: { initial: Program[] }) {
                         <button
                           type="button"
                           onClick={() => startEdit(program)}
-                          className="text-xs font-bold px-3.5 py-2 rounded-full cursor-pointer"
+                          className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-full cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--ff-300)] hover:text-[var(--ff-700)]"
                           style={{ fontFamily: "var(--font-heading)", background: "transparent", border: "1.5px solid var(--gray-100)", color: "var(--gray-700)" }}
                         >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z" />
+                          </svg>
                           Edit
                         </button>
                         <button
                           type="button"
                           onClick={() => togglePublished(program)}
                           disabled={busy === `toggle:${program.id}`}
-                          className="text-xs font-bold px-3.5 py-2 rounded-full cursor-pointer disabled:opacity-60"
+                          className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-full cursor-pointer transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60"
                           style={
                             program.published
                               ? { fontFamily: "var(--font-heading)", background: "transparent", border: "1.5px solid var(--gray-100)", color: "var(--gray-700)" }
                               : { fontFamily: "var(--font-heading)", background: "linear-gradient(135deg, var(--ff-500), var(--ff-700))", border: "none", color: "#fff" }
                           }
                         >
+                          {program.published ? (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
+                              <path d="M1 1l22 22" />
+                            </svg>
+                          ) : (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
+                          )}
                           {busy === `toggle:${program.id}` ? "Saving…" : program.published ? "Unpublish" : "Publish"}
                         </button>
                         <button
                           type="button"
-                          onClick={() => removeProgram(program)}
+                          onClick={() => { setDeleteTarget(program); setMessage(null); }}
                           disabled={busy === `delete:${program.id}`}
-                          className="text-xs font-bold px-3.5 py-2 rounded-full cursor-pointer disabled:opacity-60"
+                          className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-full cursor-pointer transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60"
                           style={{ fontFamily: "var(--font-heading)", background: "#fff1f1", border: "1px solid #ffd7d7", color: "#b42318" }}
                         >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                          </svg>
                           {busy === `delete:${program.id}` ? "Deleting…" : "Delete"}
                         </button>
                       </div>
                     </div>
-                  )}
                 </div>
               );
             })}

@@ -110,47 +110,97 @@ import { PROGRAMS, type Program } from "@/lib/program-data";
 
 function ProgramCard({ p }: { p: Program }) {
   return (
-    <Link href="/apply" className="block h-full" style={{ textDecoration: "none" }}>
-      <TiltCard className="relative group bg-white rounded-2xl p-7 border h-full cursor-pointer" style={{ borderColor: "var(--gray-100)", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-        {/* Photo */}
+    <Link href="/apply" className="flex h-full" style={{ textDecoration: "none" }}>
+      <TiltCard
+        className="relative group flex flex-col h-full bg-white rounded-2xl overflow-hidden border cursor-pointer transition-shadow duration-300 hover:shadow-[0_24px_50px_-24px_rgba(0,88,80,0.45)]"
+        style={{ borderColor: "var(--gray-100)", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}
+      >
+        {/* Photo — full-bleed with a scrim so the badge stays readable */}
         <div
-          className="relative rounded-xl overflow-hidden mb-5"
-          style={{ height: 148, background: "var(--ff-100)", zIndex: 2 }}
+          className="relative shrink-0 overflow-hidden"
+          style={{ height: 170, background: "var(--ff-100)", zIndex: 2 }}
         >
-          <Image
-            src={p.img}
-            alt=""
-            fill
-            sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
-            style={{ objectFit: "cover" }}
-            className="transition-transform duration-500 group-hover:scale-105"
+          {p.img ? (
+            <Image
+              src={p.img}
+              alt=""
+              fill
+              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
+              style={{ objectFit: "cover" }}
+              className="transition-transform duration-700 ease-out group-hover:scale-110"
+            />
+          ) : (
+            <div
+              className="flex h-full w-full items-center justify-center"
+              style={{ background: "linear-gradient(135deg, var(--ff-100), var(--ff-50))" }}
+            >
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--ff-300)" }} aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+            </div>
+          )}
+
+          <div
+            aria-hidden="true"
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(180deg, rgba(0,20,18,0.30) 0%, rgba(0,20,18,0) 42%, rgba(0,20,18,0.55) 100%)" }}
           />
+
+          {p.tag && (
+            <span
+              className="absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] backdrop-blur-md"
+              style={{
+                background: "rgba(255,255,255,0.18)",
+                border: "1px solid rgba(255,255,255,0.35)",
+                color: "#fff",
+                fontFamily: "var(--font-heading)",
+              }}
+            >
+              {p.tag}
+            </span>
+          )}
         </div>
-        {/* Tag */}
-        <span className="text-[11px] font-semibold tracking-widest uppercase mb-2 block" style={{ color: "var(--ff-400)", fontFamily: "var(--font-heading)" }}>
-          {p.tag}
-        </span>
-        {/* Title */}
-        <h3 className="font-bold text-lg mb-2 transition-colors duration-200 group-hover:text-[var(--ff-700)]" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-900)" }}>
-          {p.title}
-        </h3>
-        {/* Desc */}
-        <p className="text-sm leading-relaxed mb-5" style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)" }}>
-          {p.desc}
-        </p>
-        {/* Apply now */}
-        <div className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: "var(--ff-500)", fontFamily: "var(--font-heading)" }}>
-          Apply Now
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform duration-200" aria-hidden="true">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
+
+        {/* Body */}
+        <div className="relative flex flex-1 flex-col p-6" style={{ zIndex: 3 }}>
+          <h3
+            className="mb-2 line-clamp-2 text-[1.05rem] font-extrabold leading-snug tracking-[-0.01em] transition-colors duration-200 group-hover:text-[var(--ff-700)]"
+            style={{ fontFamily: "var(--font-heading)", color: "var(--gray-950)" }}
+          >
+            {p.title}
+          </h3>
+
+          <p
+            className="mb-5 line-clamp-3 break-words text-sm leading-relaxed"
+            style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)" }}
+          >
+            {p.desc}
+          </p>
+
+          {/* Divider sweeps in on hover; CTA row pinned to the card bottom */}
+          <div className="mt-auto">
+            <div
+              aria-hidden="true"
+              className="h-px w-full origin-left scale-x-0 rounded-full transition-transform duration-500 ease-out group-hover:scale-x-100"
+              style={{ background: "linear-gradient(90deg, var(--ff-500), rgba(0,167,157,0))" }}
+            />
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-sm font-bold" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-900)" }}>
+                Apply now
+              </span>
+              <span
+                className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-[var(--ff-500)] group-hover:bg-[var(--ff-500)] group-hover:text-white"
+                style={{ background: "var(--ff-50)", border: "1px solid var(--ff-100)", color: "var(--ff-600)" }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-0.5 transition-transform duration-300" aria-hidden="true">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </span>
+            </div>
+          </div>
         </div>
-        {/* Bottom border reveal on hover */}
-        <div
-          className="absolute bottom-0 left-6 right-6 h-px rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-400"
-          style={{ background: "var(--ff-400)" }}
-          aria-hidden="true"
-        />
       </TiltCard>
     </Link>
   );
@@ -174,7 +224,7 @@ export function ProgramsSection({ programs = PROGRAMS }: { programs?: Program[] 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {programs.map((p, i) => (
-            <Reveal key={i} delay={i * 0.07}>
+            <Reveal key={i} delay={i * 0.07} className="h-full">
               <ProgramCard p={p} />
             </Reveal>
           ))}
@@ -201,9 +251,10 @@ export function FeaturedProgramsSection({ programs = PROGRAMS }: { programs?: Pr
           </p>
         </Reveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Narrower, centred grid so the cards don't stretch across the full container */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {programs.slice(0, 6).map((p, i) => (
-            <Reveal key={i} delay={i * 0.07}>
+            <Reveal key={i} delay={i * 0.07} className="h-full">
               <ProgramCard p={p} />
             </Reveal>
           ))}
