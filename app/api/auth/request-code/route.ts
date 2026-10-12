@@ -40,17 +40,18 @@ export async function POST(request: Request) {
   }
 
   const code = await createLoginCode(email);
-  const sent = await sendLoginCode(email, code);
 
-  if (!sent && !mailConfigured() && process.env.NODE_ENV !== "production") {
-    // Dev convenience: no Resend key configured — hand the code back for the UI.
+  // Resend isn't set up yet: hand the code back so signing in still works.
+  // This branch stops applying on its own once RESEND_API_KEY is configured.
+  if (!mailConfigured()) {
     return NextResponse.json({ ok: true, devCode: code });
   }
 
-  if (!sent && !mailConfigured()) {
+  const sent = await sendLoginCode(email, code);
+  if (!sent) {
     return NextResponse.json(
-      { error: "Email delivery is not configured. Please contact support." },
-      { status: 503 }
+      { error: "Could not send the sign-in code. Please try again." },
+      { status: 500 }
     );
   }
 

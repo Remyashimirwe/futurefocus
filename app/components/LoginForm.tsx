@@ -238,7 +238,7 @@ export default function LoginForm() {
             </p>
           </div>
 
-          {/* Dev-only code preview (no Resend key configured) */}
+          {/* Shown when no Resend key is configured: the code is returned directly */}
           {step === "code" && devCode && (
             <div
               className="flex items-start gap-2.5 text-sm rounded-2xl px-4 py-3"
@@ -249,7 +249,8 @@ export default function LoginForm() {
                 <path d="M12 8v4M12 16h.01" />
               </svg>
               <span>
-                Dev mode — your code is <strong>{devCode}</strong> (set <code>RESEND_API_KEY</code> in .env to email it instead).
+                Email delivery isn&apos;t configured yet — your code is <strong>{devCode}</strong>.
+                Add <code>RESEND_API_KEY</code> to have codes emailed instead.
               </span>
             </div>
           )}
