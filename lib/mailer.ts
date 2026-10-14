@@ -6,6 +6,19 @@ export function mailConfigured(): boolean {
   return Boolean(process.env.RESEND_API_KEY);
 }
 
+/**
+ * Whether sign-in requires the emailed verification code.
+ *
+ * With no RESEND_API_KEY there is nowhere to send the code, so the code step is
+ * skipped and email + password alone sign you in. Set LOGIN_CODE_REQUIRED to
+ * "true" / "false" to force either behaviour regardless of email delivery.
+ */
+export function codeRequired(): boolean {
+  if (process.env.LOGIN_CODE_REQUIRED === "true") return true;
+  if (process.env.LOGIN_CODE_REQUIRED === "false") return false;
+  return mailConfigured();
+}
+
 export async function sendLoginCode(email: string, code: string): Promise<boolean> {
   if (!mailConfigured()) return false;
   try {

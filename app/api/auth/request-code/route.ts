@@ -4,7 +4,7 @@ import {
   createLoginCode,
   hasRecentCode,
 } from "@/lib/admin";
-import { mailConfigured, sendLoginCode } from "@/lib/mailer";
+import { mailConfigured, codeRequired, sendLoginCode } from "@/lib/mailer";
 
 export async function POST(request: Request) {
   let body: { email?: string; password?: string };
@@ -32,6 +32,12 @@ export async function POST(request: Request) {
     );
   }
 
+  // Codes are off (no RESEND_API_KEY, or LOGIN_CODE_REQUIRED=false): sign in
+  // with email + password alone.
+  if (!codeRequired()) {
+    return NextResponse.json({ ok: true, skipCode: true });
+  }
+
   if (await hasRecentCode(email)) {
     return NextResponse.json(
       { error: "A code was just sent. Please wait a moment before requesting another." },
@@ -41,8 +47,8 @@ export async function POST(request: Request) {
 
   const code = await createLoginCode(email);
 
-  // Resend isn't set up yet: hand the code back so signing in still works.
-  // This branch stops applying on its own once RESEND_API_KEY is configured.
+  // Codes forced on without a RESEND_API_KEY: hand the code back so signing in
+  // still works. This branch only runs with LOGIN_CODE_REQUIRED=true.
   if (!mailConfigured()) {
     return NextResponse.json({ ok: true, devCode: code });
   }

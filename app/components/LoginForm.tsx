@@ -83,6 +83,19 @@ export default function LoginForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Something went wrong.");
 
+      // No code step (email delivery not configured): sign in with the password.
+      if (data.skipCode) {
+        const result = await signIn("credentials", {
+          email: email.trim(),
+          password,
+          redirect: false,
+        });
+        if (result?.error) throw new Error("Invalid email or password.");
+        router.push("/admin");
+        router.refresh();
+        return;
+      }
+
       setDevCode(data.devCode ?? "");
       setCode("");
       setStep("code");
