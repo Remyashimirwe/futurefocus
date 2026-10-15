@@ -55,11 +55,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
+    // Browser extensions (Grammarly et al.) inject attributes like
+    // data-gr-ext-installed into <html>/<body> before React hydrates. Those
+    // attributes only exist client-side, so without suppressHydrationWarning
+    // React logs a hydration mismatch. It only silences attribute diffs on
+    // these two elements — children are still checked normally.
     <html
       lang="en"
       className={`${plusJakartaSans.variable} ${inter.variable} h-full`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-white text-gray-900 antialiased">
+      <body
+        className="min-h-full flex flex-col bg-white text-gray-900 antialiased"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

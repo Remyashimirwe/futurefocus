@@ -99,7 +99,7 @@ function TiltCard({ children, className = "", style }: { children: React.ReactNo
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
     >
-      <div className="tilt-glow absolute inset-0 rounded-2xl pointer-events-none transition-opacity duration-300" style={{ opacity: 0, zIndex: 1 }} />
+      <div className="tilt-glow absolute inset-0 rounded-[26px] pointer-events-none transition-opacity duration-300" style={{ opacity: 0, zIndex: 1 }} />
       {children}
     </div>
   );
@@ -108,93 +108,141 @@ function TiltCard({ children, className = "", style }: { children: React.ReactNo
 // ─── Programs Section ─────────────────────────────────────────────
 import { PROGRAMS, type Program } from "@/lib/program-data";
 
+/** Per-tag accent colours — drives the pill dot and the hover accent line. */
+const TAG_ACCENTS: Record<string, { dot: string; from: string; to: string }> = {
+  Technology: { dot: "#00a79d", from: "#00a79d", to: "#4fcdc4" },
+  Career:     { dot: "#f5a524", from: "#f5a524", to: "#ffd79a" },
+  Global:     { dot: "#3b82f6", from: "#3b82f6", to: "#93c5fd" },
+  Creative:   { dot: "#a855f7", from: "#a855f7", to: "#d8b4fe" },
+  Music:      { dot: "#ec4899", from: "#ec4899", to: "#f9a8d4" },
+};
+
 function ProgramCard({ p }: { p: Program }) {
+  const accent = TAG_ACCENTS[p.tag] ?? TAG_ACCENTS.Technology;
+
   return (
     <Link href="/apply" className="flex h-full" style={{ textDecoration: "none" }}>
       <TiltCard
-        className="relative group flex flex-col h-full bg-white rounded-2xl overflow-hidden border cursor-pointer transition-shadow duration-300 hover:shadow-[0_24px_50px_-24px_rgba(0,88,80,0.45)]"
-        style={{ borderColor: "var(--gray-100)", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}
+        className="group relative flex h-full w-full cursor-pointer flex-col rounded-[26px] bg-white transition-shadow duration-300 shadow-[0_2px_14px_rgba(0,0,0,0.05)] hover:shadow-[0_34px_64px_-32px_rgba(0,88,80,0.55)]"
+        style={{ border: "1px solid var(--gray-100)", overflow: "hidden" }}
       >
-        {/* Photo — full-bleed with a scrim so the badge stays readable */}
-        <div
-          className="relative shrink-0 overflow-hidden"
-          style={{ height: 170, background: "var(--ff-100)", zIndex: 2 }}
-        >
-          {p.img ? (
-            <Image
-              src={p.img}
-              alt=""
-              fill
-              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
-              style={{ objectFit: "cover" }}
-              className="transition-transform duration-700 ease-out group-hover:scale-110"
-            />
-          ) : (
-            <div
-              className="flex h-full w-full items-center justify-center"
-              style={{ background: "linear-gradient(135deg, var(--ff-100), var(--ff-50))" }}
-            >
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--ff-300)" }} aria-hidden="true">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <path d="M21 15l-5-5L5 21" />
-              </svg>
-            </div>
-          )}
+        {/* Gradient hairline border — appears on hover */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-30 rounded-[26px] p-px opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{
+            background: `linear-gradient(135deg, ${accent.from} 0%, ${accent.to} 38%, rgba(0,167,157,0) 72%)`,
+            WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+            WebkitMaskComposite: "xor",
+            mask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+            maskComposite: "exclude",
+          }}
+        />
 
+        {/* Accent line sweeping across the top edge */}
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 z-30 h-[3px] origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100"
+          style={{ background: `linear-gradient(90deg, ${accent.from}, ${accent.to})` }}
+        />
+
+        {/* Photo — inset with its own radius for a modern framed look */}
+        <div className="relative shrink-0 p-3 pb-0" style={{ zIndex: 2 }}>
           <div
-            aria-hidden="true"
-            className="absolute inset-0"
-            style={{ background: "linear-gradient(180deg, rgba(0,20,18,0.30) 0%, rgba(0,20,18,0) 42%, rgba(0,20,18,0.55) 100%)" }}
-          />
+            className="relative overflow-hidden rounded-[20px]"
+            style={{ height: 178, background: "var(--ff-100)" }}
+          >
+            {p.img ? (
+              <Image
+                src={p.img}
+                alt=""
+                fill
+                sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
+                style={{ objectFit: "cover" }}
+                className="transition-transform duration-700 ease-out group-hover:scale-[1.08]"
+              />
+            ) : (
+              <div
+                className="flex h-full w-full items-center justify-center"
+                style={{ background: "linear-gradient(135deg, var(--ff-100), var(--ff-50))" }}
+              >
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--ff-300)" }} aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <path d="M21 15l-5-5L5 21" />
+                </svg>
+              </div>
+            )}
 
-          {p.tag && (
+            <div
+              aria-hidden="true"
+              className="absolute inset-0"
+              style={{ background: "linear-gradient(180deg, rgba(0,20,18,0.34) 0%, rgba(0,20,18,0) 45%, rgba(0,20,18,0.5) 100%)" }}
+            />
+
+            {/* Diagonal shine sweep */}
             <span
-              className="absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] backdrop-blur-md"
-              style={{
-                background: "rgba(255,255,255,0.18)",
-                border: "1px solid rgba(255,255,255,0.35)",
-                color: "#fff",
-                fontFamily: "var(--font-heading)",
-              }}
-            >
-              {p.tag}
-            </span>
-          )}
+              aria-hidden="true"
+              className="absolute -inset-y-8 -left-1/3 w-1/3 -rotate-12 bg-white/25 blur-md opacity-0 transition-all duration-700 ease-out group-hover:left-[120%] group-hover:opacity-100"
+            />
+
+            {p.tag && (
+              <span
+                className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] backdrop-blur-md"
+                style={{
+                  background: "rgba(255,255,255,0.2)",
+                  border: "1px solid rgba(255,255,255,0.4)",
+                  color: "#fff",
+                  fontFamily: "var(--font-heading)",
+                }}
+              >
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ background: "#fff", boxShadow: `0 0 8px ${accent.dot}` }}
+                  aria-hidden="true"
+                />
+                {p.tag}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Body */}
-        <div className="relative flex flex-1 flex-col p-6" style={{ zIndex: 3 }}>
+        <div className="relative flex flex-1 flex-col p-6 pt-5" style={{ zIndex: 3 }}>
           <h3
-            className="mb-2 line-clamp-2 text-[1.05rem] font-extrabold leading-snug tracking-[-0.01em] transition-colors duration-200 group-hover:text-[var(--ff-700)]"
+            className="mb-2 line-clamp-2 text-[1.06rem] font-extrabold leading-snug tracking-[-0.015em] transition-colors duration-200 group-hover:text-[var(--ff-700)]"
             style={{ fontFamily: "var(--font-heading)", color: "var(--gray-950)" }}
           >
             {p.title}
           </h3>
 
           <p
-            className="mb-5 line-clamp-3 break-words text-sm leading-relaxed"
+            className="line-clamp-3 break-words text-sm leading-relaxed"
             style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)" }}
           >
             {p.desc}
           </p>
 
-          {/* Divider sweeps in on hover; CTA row pinned to the card bottom */}
-          <div className="mt-auto">
+          {/* Divider sweeps in on hover; pill CTA pinned to the bottom */}
+          <div className="mt-auto pt-5">
             <div
               aria-hidden="true"
               className="h-px w-full origin-left scale-x-0 rounded-full transition-transform duration-500 ease-out group-hover:scale-x-100"
-              style={{ background: "linear-gradient(90deg, var(--ff-500), rgba(0,167,157,0))" }}
+              style={{ background: `linear-gradient(90deg, ${accent.from}, ${accent.to}00)` }}
             />
-            <div className="mt-4 flex items-center justify-between">
-              <span className="text-sm font-bold" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-900)" }}>
+            <div
+              className="mt-4 flex items-center justify-between gap-3 rounded-full py-1.5 pl-4 pr-1.5 transition-colors duration-300 bg-[var(--ff-50)] group-hover:bg-[var(--ff-700)]"
+            >
+              <span
+                className="text-sm font-bold transition-colors duration-300 text-[var(--gray-900)] group-hover:text-white"
+                style={{ fontFamily: "var(--font-heading)" }}
+              >
                 Apply now
               </span>
               <span
-                className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-[var(--ff-500)] group-hover:bg-[var(--ff-500)] group-hover:text-white"
-                style={{ background: "var(--ff-50)", border: "1px solid var(--ff-100)", color: "var(--ff-600)" }}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all duration-300 bg-white text-[var(--ff-700)] shadow-[0_4px_10px_-4px_rgba(0,61,56,0.5)] group-hover:translate-x-0.5"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-0.5 transition-transform duration-300" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </span>

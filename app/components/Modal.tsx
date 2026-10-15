@@ -3,8 +3,10 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Centered popup dialog. Closes on Escape, on a click outside the panel, or via
- * the header close button. Locks page scroll while open and moves focus inside.
+ * Centered popup dialog in the admin's light-glass style: frosted panel that
+ * scales in over a blurred backdrop, gradient accent bar, optional icon tile
+ * and subtitle. Closes on Escape, on a click outside the panel, or via the
+ * header close button. Locks page scroll while open and moves focus inside.
  */
 export default function Modal({
   open,
@@ -12,12 +14,21 @@ export default function Modal({
   title,
   children,
   width = "max-w-lg",
+  subtitle,
+  icon,
+  tone = "brand",
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
   width?: string;
+  /** Small line under the title. */
+  subtitle?: string;
+  /** Optional icon shown in a rounded tile next to the title. */
+  icon?: React.ReactNode;
+  /** Drives the accent bar / icon tile colour. */
+  tone?: "brand" | "danger";
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -54,10 +65,29 @@ export default function Modal({
 
   if (!open) return null;
 
+  const accent =
+    tone === "danger"
+      ? "linear-gradient(90deg, #ef4444 0%, #f87171 40%, rgba(248,113,113,0) 90%)"
+      : "linear-gradient(90deg, var(--ff-500) 0%, var(--ff-300) 40%, rgba(79,205,196,0) 90%)";
+
+  const tile =
+    tone === "danger"
+      ? { background: "#fff1f1", border: "1px solid #ffd7d7", color: "#b42318" }
+      : {
+          background: "linear-gradient(135deg, var(--ff-100), var(--ff-50))",
+          border: "1px solid var(--ff-100)",
+          color: "var(--ff-700)",
+        };
+
   return (
     <div
       className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center p-4 overflow-y-auto"
-      style={{ background: "rgba(12, 13, 13, 0.45)" }}
+      style={{
+        background: "rgba(6, 24, 22, 0.45)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
+        animation: "ffFadeIn 0.2s ease-out both",
+      }}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -67,35 +97,61 @@ export default function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`w-full ${width} my-8 rounded-2xl p-5 sm:p-6`}
+        className={`relative w-full ${width} my-8 overflow-hidden rounded-[26px]`}
         style={{
-          background: "var(--white)",
-          border: "1px solid var(--gray-100)",
-          boxShadow: "0 24px 60px rgba(12, 13, 13, 0.22)",
+          background: "rgba(255,255,255,0.94)",
+          backdropFilter: "blur(20px) saturate(150%)",
+          WebkitBackdropFilter: "blur(20px) saturate(150%)",
+          border: "1px solid rgba(255,255,255,0.75)",
+          boxShadow:
+            "0 40px 90px -32px rgba(0,43,39,0.5), 0 2px 8px rgba(0,43,39,0.06)",
+          animation: "ffCardIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both",
         }}
       >
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <h3
-            className="text-base font-extrabold"
-            style={{ fontFamily: "var(--font-heading)", color: "var(--gray-950)" }}
-          >
-            {title}
-          </h3>
+        {/* Gradient accent bar */}
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-[3px]"
+          style={{ background: accent }}
+        />
+
+        <div className="flex items-start gap-3.5 px-5 sm:px-6 pt-6 pb-4">
+          {icon && (
+            <div
+              aria-hidden="true"
+              className="shrink-0 h-11 w-11 rounded-2xl flex items-center justify-center"
+              style={tile}
+            >
+              {icon}
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h3
+              className="text-base font-extrabold"
+              style={{ fontFamily: "var(--font-heading)", color: "var(--gray-950)" }}
+            >
+              {title}
+            </h3>
+            {subtitle && (
+              <p className="mt-0.5 text-xs leading-relaxed" style={{ color: "var(--gray-500)" }}>
+                {subtitle}
+              </p>
+            )}
+          </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="shrink-0 rounded-full p-1.5 cursor-pointer transition-colors"
+            className="shrink-0 rounded-full p-2 cursor-pointer transition-colors duration-200 hover:bg-[var(--gray-100)]"
             style={{ color: "var(--gray-500)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--gray-100)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>
         </div>
-        {children}
+
+        <div className="px-5 sm:px-6 pb-6">{children}</div>
       </div>
     </div>
   );

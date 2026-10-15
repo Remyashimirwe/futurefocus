@@ -17,9 +17,12 @@ const mask = (v) => (v ? "*".repeat(Math.min(v.length, 12)) : "(not set)");
 
 const envEmail = (process.env.ADMIN_EMAIL ?? "").trim().toLowerCase();
 const envPassword = process.env.ADMIN_PASSWORD ?? "";
+// Optional CLI arg: the password to test every stored hash against.
+const testPassword = process.argv[2] ?? envPassword;
 
 console.log("ADMIN_EMAIL   :", envEmail || "(not set)");
 console.log("ADMIN_PASSWORD:", mask(envPassword));
+console.log("testing with  :", testPassword === envPassword ? "ADMIN_PASSWORD from .env" : "password passed as argument");
 console.log("RESEND_API_KEY:", mask(process.env.RESEND_API_KEY));
 console.log("DATABASE_URL  :", process.env.DATABASE_URL ? "set" : "(not set)");
 
@@ -74,21 +77,30 @@ try {
     console.log(`\n${rows.rowCount} admin account(s):`);
     for (const row of rows.rows) {
       const matchesEnv = row.email.toLowerCase() === envEmail;
-      const ok = envPassword ? verifyPassword(envPassword, row.password_hash) : false;
+      const ok = testPassword ? verifyPassword(testPassword, row.password_hash) : false;
       console.log(
         `  #${row.id} ${row.email} (${row.name ?? "no name"})` +
           (matchesEnv ? " ← ADMIN_EMAIL" : "")
       );
-      if (!envPassword) {
-        console.log("    ? ADMIN_PASSWORD not set — can't test the stored hash.");
-      } else if (matchesEnv && ok) {
-        console.log("    ✔ password in .env verifies against the stored hash");
-      } else if (matchesEnv && !ok) {
+      if (!testPassword) {
+        console.log("    ? no password to test (ADMIN_PASSWORD not set, none passed).");
+      } else if (ok) {
+        console.log(
+          matchesEnv
+            ? "    ✔ password in .env verifies against the stored hash"
+            : "    ✔ supplied password verifies against the stored hash"
+        );
+      } else if (matchesEnv) {
         console.log(
           "    ✖ password in .env does NOT match the stored hash — run " +
             "`node --env-file=.env scripts/seed-admin.mjs` to reset it."
         );
         failed = true;
+      } else {
+        console.log(
+          "    • different password than the one tested — check with " +
+            "`node --env-file=.env scripts/check-admin.mjs <password>`."
+        );
       }
     }
 
