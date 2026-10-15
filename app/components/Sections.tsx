@@ -463,13 +463,15 @@ export function WhyChooseUsSection() {
 }
 
 // ─── Gallery + Lightbox ───────────────────────────────────────────
-const GALLERY_ITEMS = [
-  { label: "Workshop Session",  color: "from-[#005850] to-[#00a79d]", size: "lg" as const, img: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1200&q=80&auto=format&fit=crop" },
-  { label: "Coding Bootcamp",   color: "from-[#00706b] to-[#18baaf]", size: "sm" as const, img: "https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?w=1200&q=80&auto=format&fit=crop" },
-  { label: "Team Projects",     color: "from-[#003d38] to-[#00706b]", size: "sm" as const, img: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&q=80&auto=format&fit=crop" },
-  { label: "Graduation Day",    color: "from-[#00a79d] to-[#4fcdc4]", size: "md" as const, img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&q=80&auto=format&fit=crop" },
-  { label: "Innovation Fair",   color: "from-[#005850] to-[#18baaf]", size: "md" as const, img: "https://images.unsplash.com/photo-1471341971476-ae15ff5dd4ea?w=1200&q=80&auto=format&fit=crop" },
-  { label: "Guest Speakers",    color: "from-[#00706b] to-[#00a79d]", size: "sm" as const, img: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200&q=80&auto=format&fit=crop" },
+type GalleryItem = { label: string; color: string; img: string };
+
+const GALLERY_ITEMS: GalleryItem[] = [
+  { label: "Workshop Session",  color: "from-[#005850] to-[#00a79d]", img: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1200&q=80&auto=format&fit=crop" },
+  { label: "Coding Bootcamp",   color: "from-[#00706b] to-[#18baaf]", img: "https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?w=1200&q=80&auto=format&fit=crop" },
+  { label: "Team Projects",     color: "from-[#003d38] to-[#00706b]", img: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&q=80&auto=format&fit=crop" },
+  { label: "Graduation Day",    color: "from-[#00a79d] to-[#4fcdc4]", img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&q=80&auto=format&fit=crop" },
+  { label: "Innovation Fair",   color: "from-[#005850] to-[#18baaf]", img: "https://images.unsplash.com/photo-1471341971476-ae15ff5dd4ea?w=1200&q=80&auto=format&fit=crop" },
+  { label: "Guest Speakers",    color: "from-[#00706b] to-[#00a79d]", img: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200&q=80&auto=format&fit=crop" },
 ];
 
 function Lightbox({
@@ -478,15 +480,18 @@ function Lightbox({
   onClose,
   onPrev,
   onNext,
+  onJump,
 }: {
   index: number;
-  items: typeof GALLERY_ITEMS;
+  items: GalleryItem[];
   onClose: () => void;
   onPrev: () => void;
   onNext: () => void;
+  onJump: (i: number) => void;
 }) {
   const item = items[index];
   const reduced = useReducedMotion();
+  const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Keyboard + swipe
   useEffect(() => {
@@ -503,6 +508,15 @@ function Lightbox({
     };
   }, [onClose, onNext, onPrev]);
 
+  // Keep the active thumbnail in view inside the strip
+  useEffect(() => {
+    thumbRefs.current[index]?.scrollIntoView({
+      behavior: reduced ? "auto" : "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [index, reduced]);
+
   // Touch swipe
   const touchStartX = useRef(0);
   const onTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
@@ -514,9 +528,11 @@ function Lightbox({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center"
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-3 sm:gap-4 px-4 py-5"
       style={{
-        background: "rgba(0,0,0,0.92)",
+        background: "rgba(4,12,11,0.93)",
+        backdropFilter: "blur(14px) saturate(120%)",
+        WebkitBackdropFilter: "blur(14px) saturate(120%)",
         animation: reduced ? "none" : "lightboxIn 0.25s ease",
       }}
       onClick={onClose}
@@ -526,69 +542,154 @@ function Lightbox({
       aria-modal="true"
       aria-label={`Lightbox: ${item.label}`}
     >
-      <style>{`@keyframes lightboxIn { from { opacity:0 } to { opacity:1 } }`}</style>
+      <style>{`
+        @keyframes lightboxIn { from { opacity:0 } to { opacity:1 } }
+        @keyframes lbImgIn { from { opacity:0; transform: scale(0.965) } to { opacity:1; transform: scale(1) } }
+      `}</style>
 
-      {/* Close */}
-      <button
-        onClick={onClose}
-        className="absolute top-5 right-5 h-10 w-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
-        style={{ border: "1px solid rgba(255,255,255,0.2)", background: "none" }}
-        aria-label="Close lightbox"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
-
-      {/* Prev */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onPrev(); }}
-        className="absolute left-4 h-12 w-12 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
-        style={{ border: "1px solid rgba(255,255,255,0.2)", background: "none" }}
-        aria-label="Previous"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
-      </button>
-
-      {/* Image */}
+      {/* ── Top bar: counter, label, actions ── */}
       <div
-        className="relative rounded-2xl overflow-hidden"
-        style={{ width: "min(80vw, 860px)", height: "min(70vh, 560px)", maxWidth: "90vw" }}
+        className="w-full max-w-[880px] flex items-center justify-between gap-3"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={`absolute inset-0 bg-gradient-to-br ${item.color}`} />
-        <Image
-          src={item.img}
-          alt={item.label}
-          fill
-          sizes="(max-width: 900px) 90vw, 860px"
-          style={{ objectFit: "cover" }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.12) 45%, rgba(0,0,0,0.3) 100%)" }}
-        />
-        <div className="absolute bottom-4 left-4 pr-16">
-          <p className="text-white font-semibold text-lg" style={{ fontFamily: "var(--font-heading)" }}>{item.label}</p>
-          <p className="text-white/60 text-sm" style={{ fontFamily: "var(--font-body)" }}>Future Focus Academy</p>
-        </div>
-        {/* Counter */}
-        <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.4)" }}>
-          <span className="text-white/80 text-xs font-medium" style={{ fontFamily: "var(--font-heading)" }}>
+        <div className="flex items-center gap-3 min-w-0">
+          <span
+            className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold tabular-nums"
+            style={{
+              fontFamily: "var(--font-heading)",
+              background: "rgba(255,255,255,0.12)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              color: "#fff",
+            }}
+          >
             {index + 1} / {items.length}
           </span>
+          <p className="truncate text-white text-sm sm:text-base font-semibold" style={{ fontFamily: "var(--font-heading)" }}>
+            {item.label}
+          </p>
+          <span className="hidden sm:inline text-xs text-white/45 truncate" style={{ fontFamily: "var(--font-body)" }}>
+            Future Focus Academy
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <a
+            href={item.img}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold text-white/80 hover:text-white transition-colors duration-200"
+            style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", fontFamily: "var(--font-heading)" }}
+          >
+            Open original
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+          </a>
+          <button
+            onClick={onClose}
+            className="h-10 w-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+            style={{ border: "1px solid rgba(255,255,255,0.2)", background: "none" }}
+            aria-label="Close lightbox"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
         </div>
       </div>
 
-      {/* Next */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onNext(); }}
-        className="absolute right-4 h-12 w-12 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
-        style={{ border: "1px solid rgba(255,255,255,0.2)", background: "none" }}
-        aria-label="Next"
+      {/* ── Stage: image + arrows ── */}
+      <div className="relative w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+        {/* Prev */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onPrev(); }}
+          className="absolute left-0 sm:left-4 z-10 h-11 w-11 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+          style={{ border: "1px solid rgba(255,255,255,0.22)", background: "rgba(0,0,0,0.25)", backdropFilter: "blur(6px)" }}
+          aria-label="Previous"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
+        </button>
+
+        {/* Image — remounts on navigation for a fade/scale transition */}
+        <div
+          key={index}
+          className="relative rounded-2xl overflow-hidden"
+          style={{
+            width: "min(84vw, 880px)",
+            height: "min(56vh, 520px)",
+            maxWidth: "90vw",
+            boxShadow: "0 44px 90px -40px rgba(0,0,0,0.9)",
+            animation: reduced ? "none" : "lbImgIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both",
+          }}
+        >
+          <div className={`absolute inset-0 bg-gradient-to-br ${item.color}`} />
+          <Image
+            src={item.img}
+            alt={item.label}
+            fill
+            priority
+            sizes="(max-width: 900px) 92vw, 880px"
+            style={{ objectFit: "cover" }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.05) 45%, rgba(0,0,0,0.25) 100%)" }}
+          />
+        </div>
+
+        {/* Next */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onNext(); }}
+          className="absolute right-0 sm:right-4 z-10 h-11 w-11 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+          style={{ border: "1px solid rgba(255,255,255,0.22)", background: "rgba(0,0,0,0.25)", backdropFilter: "blur(6px)" }}
+          aria-label="Next"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+
+      {/* ── Thumbnail strip ── */}
+      <div
+        className="w-full max-w-[880px] flex items-center gap-2 overflow-x-auto pb-1"
+        style={{ scrollbarWidth: "thin" }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-      </button>
+        {items.map((t, i) => (
+          <button
+            key={`${t.img}-${i}`}
+            ref={(el) => { thumbRefs.current[i] = el; }}
+            onClick={() => onJump(i)}
+            className="relative h-12 w-16 sm:h-14 sm:w-20 shrink-0 rounded-lg overflow-hidden cursor-pointer transition-all duration-200"
+            style={{
+              border: i === index ? "2px solid var(--ff-400)" : "1px solid rgba(255,255,255,0.18)",
+              opacity: i === index ? 1 : 0.45,
+              transform: i === index ? "translateY(-2px)" : "none",
+              boxShadow: i === index ? "0 8px 20px -8px rgba(0,167,157,0.8)" : "none",
+            }}
+            aria-label={`View ${t.label}`}
+            aria-current={i === index}
+            onMouseEnter={(e) => { if (i !== index) e.currentTarget.style.opacity = "0.9"; }}
+            onMouseLeave={(e) => { if (i !== index) e.currentTarget.style.opacity = "0.45"; }}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-br ${t.color}`} />
+            <Image src={t.img} alt="" fill sizes="80px" style={{ objectFit: "cover" }} />
+          </button>
+        ))}
+      </div>
+
+      {/* ── Keyboard hints ── */}
+      <div className="hidden sm:flex items-center gap-3 text-[11px] text-white/45" onClick={(e) => e.stopPropagation()}>
+        <span className="inline-flex items-center gap-1.5">
+          <kbd className="px-1.5 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.18)" }}>←</kbd>
+          <kbd className="px-1.5 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.18)" }}>→</kbd>
+          Navigate
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <kbd className="px-1.5 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.18)" }}>Esc</kbd>
+          Close
+        </span>
+      </div>
     </div>
   );
 }
@@ -596,93 +697,250 @@ function Lightbox({
 export function GallerySection({ uploads = [] }: { uploads?: { label: string; url: string }[] }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [hoveredIndex, setHoveredIndex]   = useState<number | null>(null);
+  const [query, setQuery]   = useState("");
+  const [visible, setVisible] = useState(9);
 
-  const items: typeof GALLERY_ITEMS = [
+  const items: GalleryItem[] = [
     ...uploads.map((u) => ({
       label: u.label,
       color: "from-[#005850] to-[#00a79d]",
-      size: "md" as const,
       img: u.url,
     })),
     ...GALLERY_ITEMS,
   ];
 
+  // Search + pagination
+  const q = query.trim().toLowerCase();
+  const filtered = q ? items.filter((it) => it.label.toLowerCase().includes(q)) : items;
+  const shown = filtered.slice(0, visible);
+
+  const onSearch = (v: string) => { setQuery(v); setVisible(9); };
+
   const openLightbox  = (i: number) => setLightboxIndex(i);
   const closeLightbox = () => setLightboxIndex(null);
-  const prevItem = () => setLightboxIndex((i) => i !== null ? (i - 1 + items.length) % items.length : null);
-  const nextItem = () => setLightboxIndex((i) => i !== null ? (i + 1) % items.length : null);
+  const prevItem = () => setLightboxIndex((i) => (i !== null && filtered.length ? (i - 1 + filtered.length) % filtered.length : null));
+  const nextItem = () => setLightboxIndex((i) => (i !== null && filtered.length ? (i + 1) % filtered.length : null));
+
+  // Mosaic layout: first tile is the hero, every 4th is a tall tile
+  const wrapperCls = (i: number) =>
+    i === 0 ? "col-span-2 md:col-span-2 md:row-span-2" : i % 4 === 3 ? "md:row-span-2" : "";
 
   return (
-    <section id="gallery" className="ff-section" style={{ background: "var(--ff-50)" }} data-nav-theme="light">
-      <div className="ff-container">
-        <Reveal className="max-w-xl mb-14">
-          <span className="text-xs font-semibold tracking-[0.16em] uppercase mb-3 block" style={{ color: "var(--ff-500)", fontFamily: "var(--font-heading)" }}>Moments & Memories</span>
-          <h2 className="text-4xl font-extrabold mb-4" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-950)" }}>Gallery</h2>
-          <p style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)", lineHeight: 1.7 }}>
-            A glimpse into the vibrant world of Future Focus Academy — learning, collaborating, and growing together.
-          </p>
-        </Reveal>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {items.map((item, i) => (
-            <Reveal key={i} delay={i * 0.07}>
-              <button
-                onClick={() => openLightbox(i)}
-                onMouseEnter={() => setHoveredIndex(i)}
-                onMouseLeave={() => setHoveredIndex(null)}
-                className="group relative overflow-hidden rounded-2xl w-full cursor-pointer"
-                style={{
-                  minHeight: item.size === "lg" ? 360 : item.size === "md" ? 220 : 180,
-                  border: "none",
-                  padding: 0,
-                  background: "none",
-                  // Expand hovered, compress neighbours
-                  transform: hoveredIndex === i ? "scale(1.03)" : hoveredIndex !== null ? "scale(0.98)" : "scale(1)",
-                  transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1)",
-                  display: "block",
-                }}
-                aria-label={`Open ${item.label}`}
-              >
-                {/* Background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${item.color}`} />
-                {/* Photo */}
-                <Image
-                  src={item.img}
-                  alt=""
-                  fill
-                  sizes="(max-width: 768px) 50vw, 33vw"
-                  style={{ objectFit: "cover" }}
-                  className="transition-transform duration-500 group-hover:scale-105"
-                />
-                {/* Contrast overlay */}
-                <div
-                  className="absolute inset-0"
-                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.05) 55%, rgba(0,0,0,0.18) 100%)" }}
-                />
-                {/* Label reveal on hover */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/55 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                  <p className="text-white text-sm font-semibold text-left" style={{ fontFamily: "var(--font-heading)" }}>{item.label}</p>
-                  <p className="text-white/50 text-xs mt-0.5 text-left" style={{ fontFamily: "var(--font-body)" }}>Click to expand</p>
-                </div>
-                {/* Expand icon */}
-                <div className="absolute top-3 right-3 h-7 w-7 rounded-full bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-                  </svg>
-                </div>
-              </button>
-            </Reveal>
-          ))}
-        </div>
+    <section id="gallery" className="ff-section relative overflow-hidden" style={{ background: "var(--ff-50)" }} data-nav-theme="light">
+      {/* Ambient glow orbs */}
+      <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-40 -left-28 h-96 w-96 rounded-full" style={{ background: "radial-gradient(circle, rgba(0,167,157,0.13), transparent 70%)" }} />
+        <div className="absolute top-1/3 -right-40 h-[30rem] w-[30rem] rounded-full" style={{ background: "radial-gradient(circle, rgba(79,205,196,0.15), transparent 70%)" }} />
       </div>
 
-      {lightboxIndex !== null && (
+      <div className="ff-container relative">
+        {/* ── Header + search ── */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <Reveal className="max-w-xl">
+            <span className="text-xs font-semibold tracking-[0.16em] uppercase mb-3 block" style={{ color: "var(--ff-500)", fontFamily: "var(--font-heading)" }}>Moments & Memories</span>
+            <h2 className="text-4xl font-extrabold mb-4" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-950)" }}>Gallery</h2>
+            <p style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)", lineHeight: 1.7 }}>
+              A glimpse into the vibrant world of Future Focus Academy — learning, collaborating, and growing together.
+            </p>
+          </Reveal>
+
+          <Reveal delay={0.1} className="flex flex-col items-start md:items-end gap-3 w-full md:w-auto">
+            {/* Photo count chip */}
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold"
+              style={{
+                fontFamily: "var(--font-heading)",
+                background: "#fff",
+                border: "1px solid var(--gray-100)",
+                color: "var(--ff-700)",
+                boxShadow: "0 14px 30px -22px rgba(0,43,39,0.6)",
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ color: "var(--ff-500)" }}>
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" />
+              </svg>
+              <span className="tabular-nums">{items.length}</span> photos
+            </span>
+
+            {/* Search */}
+            <label className="relative block w-full md:w-72">
+              <span className="sr-only">Search photos</span>
+              <svg
+                width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ color: "var(--gray-400, #9aa3a3)" }}
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => onSearch(e.target.value)}
+                placeholder="Search photos…"
+                className="w-full rounded-full pl-11 pr-10 py-3 text-sm bg-white text-[var(--gray-900)] outline-none border-[1.5px] border-[var(--gray-100)] focus:border-[var(--ff-400)] focus:shadow-[0_0_0_4px_var(--ff-100)] transition-shadow duration-200"
+                style={{ fontFamily: "var(--font-body)" }}
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => onSearch("")}
+                  aria-label="Clear search"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full flex items-center justify-center text-[var(--gray-400, #9aa3a3)] hover:text-[var(--gray-700)] hover:bg-[var(--gray-100)] transition-colors cursor-pointer"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+            </label>
+          </Reveal>
+        </div>
+
+        {/* ── Mosaic grid ── */}
+        {shown.length === 0 ? (
+          <div
+            className="rounded-3xl bg-white px-6 py-16 flex flex-col items-center gap-3 text-center"
+            style={{ border: "1px solid var(--gray-100)", boxShadow: "0 34px 70px -46px rgba(0,43,39,0.45)" }}
+          >
+            <span
+              className="h-14 w-14 rounded-2xl flex items-center justify-center"
+              style={{ background: "var(--ff-50)", border: "1px solid var(--ff-100)", color: "var(--ff-500)" }}
+              aria-hidden="true"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </span>
+            <p className="font-bold text-lg" style={{ fontFamily: "var(--font-heading)", color: "var(--gray-900)" }}>
+              No photos match “{query.trim()}”
+            </p>
+            <p className="text-sm" style={{ color: "var(--gray-500)", fontFamily: "var(--font-body)" }}>
+              Try a different word, or clear the search to see everything.
+            </p>
+            <button
+              type="button"
+              onClick={() => onSearch("")}
+              className="mt-2 rounded-full px-6 py-2.5 text-sm font-bold bg-white border-[1.5px] border-[var(--gray-100)] text-[var(--gray-700)] hover:border-[var(--ff-400)] hover:text-[var(--ff-700)] transition-all duration-200 cursor-pointer"
+              style={{ fontFamily: "var(--font-heading)" }}
+            >
+              Clear search
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:auto-rows-[210px]">
+            {shown.map((item, i) => (
+              <Reveal key={`${item.img}-${i}`} delay={Math.min(i * 0.06, 0.36)} className={wrapperCls(i)}>
+                <button
+                  onClick={() => openLightbox(i)}
+                  onMouseEnter={() => setHoveredIndex(i)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                  className={`group relative overflow-hidden rounded-3xl w-full cursor-pointer ${i === 0 ? "aspect-[16/10]" : "aspect-square"} md:aspect-auto md:h-full`}
+                  style={{
+                    border: "none",
+                    padding: 0,
+                    background: "none",
+                    display: "block",
+                    // Expand hovered, compress neighbours
+                    transform: hoveredIndex === i ? "scale(1.03)" : hoveredIndex !== null ? "scale(0.98)" : "scale(1)",
+                    transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1)",
+                  }}
+                  aria-label={`Open ${item.label}`}
+                >
+                  {/* Background */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${item.color}`} />
+                  {/* Photo */}
+                  <Image
+                    src={item.img}
+                    alt=""
+                    fill
+                    sizes={i === 0 ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 50vw, 33vw"}
+                    style={{ objectFit: "cover" }}
+                    className="transition-transform duration-700 group-hover:scale-[1.07]"
+                  />
+                  {/* Contrast overlay */}
+                  <div
+                    className="absolute inset-0"
+                    style={{ background: "linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.05) 55%, rgba(0,0,0,0.2) 100%)" }}
+                  />
+
+                  {/* Badge — fresh uploads */}
+                  {i < uploads.length && (
+                    <span
+                      className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md"
+                      style={{
+                        fontFamily: "var(--font-heading)",
+                        background: "linear-gradient(135deg, var(--ff-500), var(--ff-700))",
+                        boxShadow: "0 10px 22px -10px rgba(0,167,157,0.9)",
+                      }}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden="true" />
+                      New
+                    </span>
+                  )}
+
+                  {/* Label — always visible, hint reveals on hover */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/65 via-black/25 to-transparent">
+                    <p className="text-white text-sm font-semibold text-left" style={{ fontFamily: "var(--font-heading)" }}>{item.label}</p>
+                    <p
+                      className="text-white/60 text-xs mt-0.5 text-left translate-y-1 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300"
+                      style={{ fontFamily: "var(--font-body)" }}
+                    >
+                      Click to expand
+                    </p>
+                  </div>
+
+                  {/* Expand icon */}
+                  <div
+                    className="absolute top-3 right-3 h-8 w-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100"
+                    style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)", border: "1px solid rgba(255,255,255,0.25)" }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                    </svg>
+                  </div>
+                </button>
+              </Reveal>
+            ))}
+          </div>
+        )}
+
+        {/* ── Load more ── */}
+        {shown.length < filtered.length && (
+          <div className="flex justify-center mt-10">
+            <button
+              type="button"
+              onClick={() => setVisible((v) => v + 6)}
+              className="group inline-flex items-center gap-2.5 rounded-full px-7 py-3.5 text-sm font-bold bg-white border-[1.5px] border-[var(--gray-100)] text-[var(--gray-700)] hover:border-[var(--ff-400)] hover:text-[var(--ff-700)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+              style={{ fontFamily: "var(--font-heading)", boxShadow: "0 20px 44px -30px rgba(0,43,39,0.55)" }}
+            >
+              Show more photos
+              <span
+                className="rounded-full px-2 py-0.5 text-[11px] tabular-nums"
+                style={{ background: "var(--ff-50)", border: "1px solid var(--ff-100)", color: "var(--ff-700)" }}
+              >
+                {filtered.length - shown.length}
+              </span>
+              <svg
+                width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+                className="group-hover:translate-y-0.5 transition-transform duration-200"
+                aria-hidden="true"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {lightboxIndex !== null && filtered.length > 0 && (
         <Lightbox
-          index={lightboxIndex}
-          items={items}
+          index={Math.min(lightboxIndex, filtered.length - 1)}
+          items={filtered}
           onClose={closeLightbox}
           onPrev={prevItem}
           onNext={nextItem}
+          onJump={setLightboxIndex}
         />
       )}
     </section>
