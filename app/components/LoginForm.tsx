@@ -83,11 +83,13 @@ export default function LoginForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Something went wrong.");
 
-      // No code step (email delivery not configured): sign in with the password.
+      // No code step (email delivery not configured, or delivery failed and
+      // the route handed back a signed fallback ticket): sign in with password.
       if (data.skipCode) {
         const result = await signIn("credentials", {
           email: email.trim(),
           password,
+          ...(data.fallbackTicket ? { ticket: data.fallbackTicket } : {}),
           redirect: false,
         });
         if (result?.error) throw new Error("Invalid email or password.");

@@ -6,6 +6,7 @@ import {
   invalidateLoginCodes,
 } from "@/lib/admin";
 import { mailConfigured, codeRequired, sendLoginCode } from "@/lib/mailer";
+import { createFallbackTicket } from "@/lib/fallback-ticket";
 
 export async function POST(request: Request) {
   let body: { email?: string; password?: string };
@@ -56,15 +57,32 @@ export async function POST(request: Request) {
 
   const sent = await sendLoginCode(email, code);
   if (!sent) {
-    // Do not strand the user behind the rate limit when delivery failed.
+    // Delivery failed (invalid key, unverified EMAIL_FROM domain, or a Resend
+    // outage). The password has already been verified above, so rather than
+    // stranding the admin behind a 500 — or behind the resend rate limit —
+    // drop the unused code and hand back a short-lived signed ticket that lets
+    // authorize() accept email + password alone this once.
     await invalidateLoginCodes(email);
-    return NextResponse.json(
-      {
-        error:
-          "Could not send the sign-in code. Check your Resend API key and set EMAIL_FROM to an address on a verified sending domain, then try again.",
-      },
-      { status: 500 }
+    console.error(
+      `[auth] login code delivery failed for ${email} — falling back to password-only sign-in. ` +
+        `Fix RESEND_API_KEY / EMAIL_FROM (sender must be on a verified Resend domain) to re-enable codes.`
     );
+    const ticket = createFallbackTicket(email);
+    if (!ticket) {
+      return NextResponse.json(
+        {
+          error:
+            "Sign-in codes can't be delivered right now and password-only sign-in is unavailable. Please contact support.",
+        },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({
+      ok: true,
+      skipCode: true,
+      mailFallback: true,
+      fallbackTicket: ticket,
+    });
   }
 
   return NextResponse.json({ ok: true });
