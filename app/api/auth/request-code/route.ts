@@ -3,6 +3,7 @@ import {
   authenticateAdmin,
   createLoginCode,
   hasRecentCode,
+  invalidateLoginCodes,
 } from "@/lib/admin";
 import { mailConfigured, codeRequired, sendLoginCode } from "@/lib/mailer";
 
@@ -55,8 +56,13 @@ export async function POST(request: Request) {
 
   const sent = await sendLoginCode(email, code);
   if (!sent) {
+    // Do not strand the user behind the rate limit when delivery failed.
+    await invalidateLoginCodes(email);
     return NextResponse.json(
-      { error: "Could not send the sign-in code. Please try again." },
+      {
+        error:
+          "Could not send the sign-in code. Check your Resend API key and set EMAIL_FROM to an address on a verified sending domain, then try again.",
+      },
       { status: 500 }
     );
   }

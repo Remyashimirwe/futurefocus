@@ -66,6 +66,13 @@ export async function hasRecentCode(email: string): Promise<boolean> {
   return Boolean(row);
 }
 
+/** Invalidates a code when the email provider rejects its delivery. */
+export async function invalidateLoginCodes(email: string): Promise<void> {
+  await query("UPDATE auth_codes SET used = true WHERE email = $1 AND used = false", [
+    email.toLowerCase(),
+  ]);
+}
+
 /** Returns true when the code is valid, unexpired and unused — and marks it used. */
 export async function consumeLoginCode(email: string, code: string): Promise<boolean> {
   const row = await queryOne<{ id: number }>(
